@@ -1,0 +1,39 @@
+name: Deploy tool to GitHub Pages
+
+# Publishes the single-file interactive tool (tool/) to GitHub Pages.
+# NOTE: GitHub Pages is PUBLIC. Only the tool's embedded demo data is published here —
+# tool/data.json is gitignored (licensed S&P-derived data) and is NOT deployed. Do not
+# commit a real data.json built from S&P pulls if this site is public.
+
+on:
+  push:
+    branches: [main]
+    paths: ["tool/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# one deployment at a time; let an in-progress run finish
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Upload tool/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: tool
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
