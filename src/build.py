@@ -43,19 +43,40 @@ def load_csv_rows(path: Path) -> list[dict]:
         return list(csv.DictReader(f))
 
 
+# filler words dropped before matching, so "Ins Co" == "Insurance Company", "&" == "and", etc.
+_FILLER = {"insurance", "ins", "assurance", "company", "co", "corporation", "corp",
+           "incorporated", "inc", "group", "the", "of", "and", "ltd", "society", "usa"}
+
+
+def match_norm(s: str) -> str:
+    """Normalize for entity matching: drop filler words, then alphanumeric-only."""
+    import re
+    s = (s or "").lower().replace("&", " and ")
+    toks = [t for t in re.split(r"[^a-z0-9]+", s) if t and t not in _FILLER]
+    return "".join(toks)
+
+
 def match_roster(name: str, entity_key: str | None, roster: list[dict]) -> dict | None:
-    """Match a parsed pull to a roster row by normalized lead_entity / rating_unit_name."""
-    nn = normalize(name)
+    """Match a parsed pull to a roster row by filler-stripped lead_entity / rating_unit_name."""
+    nn = match_norm(name)
+    ALIAS = {  # filing entity (filler-stripped) -> roster rating_unit_name
+        "americanrepublic": "Wellabe Group",          # Wellabe files via American Republic
+        "americanamicabletexas": "American-Amicable / Trinity",
+        "healthspring": "Cigna — National Health",     # Cigna sub renamed HealthSpring
+    }
+    for frag, unit in ALIAS.items():
+        if frag in nn:
+            for row in roster:
+                if row.get("rating_unit_name") == unit:
+                    return row
     best = None
     for row in roster:
         for key in ("lead_entity", "rating_unit_name"):
-            rv = normalize(row.get(key, ""))
+            rv = match_norm(row.get(key, ""))
             if not rv:
                 continue
-            # containment either direction handles "... Co" vs "... Company"
-            if rv == nn or rv in nn or nn in rv:
-                # prefer the longest overlap
-                score = len(set(rv) & set(nn)) + (10 if rv == nn else 0)
+            if rv == nn or (len(rv) >= 6 and rv in nn) or (len(nn) >= 6 and nn in rv):
+                score = len(set(rv) & set(nn)) + (10 if rv == nn else 0) + min(len(rv), len(nn))
                 if best is None or score > best[0]:
                     best = (score, row)
     return best[1] if best else None

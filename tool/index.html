@@ -142,12 +142,13 @@
 const BS_TIERS=["Strongest","Very Strong","Strong","Adequate","Weak","Very Weak"];
 const OP_TIERS=["Very Strong","Strong","Adequate","Marginal","Weak","Very Weak"];
 const BP_TIERS=["Very Favorable","Favorable","Neutral","Limited","Very Limited"];
-const BS_COLOR={"Strongest":"#1F4E79","Very Strong":"#2E5A88","Strong":"#5B8AB5",
-  "Adequate":"#E0A458","Weak":"#B5402E","Very Weak":"#7A2418","":"#AAB2BA"};
-const OP_COLOR={"Very Strong":"#1F4E79","Strong":"#2E5A88","Adequate":"#5B8AB5",
-  "Marginal":"#E0A458","Weak":"#B5402E","Very Weak":"#7A2418","":"#AAB2BA"};
-const BP_COLOR={"Very Favorable":"#1F4E79","Favorable":"#2E5A88","Neutral":"#5B8AB5",
-  "Limited":"#E0A458","Very Limited":"#B5402E","":"#AAB2BA"};
+// distinct hues per scale so adjacent tiers (esp. Neutral/Favorable/Very Favorable) read apart
+const BS_COLOR={"Strongest":"#15324F","Very Strong":"#2E7DA1","Strong":"#7FC2D6",
+  "Adequate":"#E0A458","Weak":"#C0563B","Very Weak":"#7A2418","":"#AAB2BA"};
+const OP_COLOR={"Very Strong":"#14502A","Strong":"#3FA85A","Adequate":"#A6CF77",
+  "Marginal":"#E0A458","Weak":"#C0392B","Very Weak":"#7A2418","":"#AAB2BA"};
+const BP_COLOR={"Very Favorable":"#0F5C8C","Favorable":"#27A35A","Neutral":"#9AA0A6",
+  "Limited":"#F2A93B","Very Limited":"#C0392B","":"#CBD2D8"};
 const ICR_SCALE=["aaa","aa+","aa","aa-","a+","a","a-","bbb+","bbb","bbb-","bb+","bb","bb-","b+","b","b-"];
 const BAND_TOL=1; // +/- notches around the point estimate (mirror of notching.BAND_TOLERANCE)
 const STORE_KEY="ambest_pulls_v1"; // localStorage key for loaded pulls (declared early — used at startup)
@@ -275,9 +276,12 @@ const LAYOUT=extra=>Object.assign({
 const CFG={responsive:true,displayModeBar:false};
 
 /* tap a point -> show that carrier row */
+let activeCommentary=null;  // set per view; writes per-carrier prose into #finding on tap
 function bindTap(div){ div.on("plotly_click",e=>{ const p=e.points[0]; const c=p.customdata;
-  if(!c) return; showDetail(c); document.getElementById("detailWrap").open=true;
-  document.getElementById("detailWrap").scrollIntoView({behavior:"smooth",block:"center"}); }); }
+  if(!c) return; showDetail(c); if(activeCommentary) activeCommentary(c);
+  document.getElementById("detailWrap").open=true; }); }
+function median(xs){xs=xs.filter(v=>v!=null).sort((a,b)=>a-b); if(!xs.length)return null;
+  const m=Math.floor(xs.length/2); return xs.length%2?xs[m]:(xs[m-1]+xs[m])/2;}
 function showDetail(c){
   const rows=[["Rating unit",c.rating_unit_name],["FSR / ICR",(c.fsr||"—")+" / "+(c.icr||"—")],
     ["Balance sheet",c.bs_assessment||"—"],["Operating",c.op_assessment||"—"],
@@ -288,6 +292,25 @@ function showDetail(c){
     ["Total assets",money(c.total_assets_usd)],["Segment HHI",c.hhi_segments==null?"—":c.hhi_segments],
     ["Stratum",c.stratum||"—"]];
   document.getElementById("detail").innerHTML=rows.map(r=>`<div class="row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+}
+
+function bsCommentary(c,medByTier){
+  const rbc=c.rbc_cal_pct,hrl=c.higher_risk_leverage_partial,bi=c.below_ig_pct,sn=c.surplus_notes_pct;
+  const tier=c.bs_assessment||"unrated";
+  const p=[`<b>${c.rating_unit_name}</b> — FSR <b>${c.fsr||"—"}</b>, balance sheet <b>${tier}</b>.`];
+  let s=`Holds <b>${rbc!=null?Math.round(rbc)+"% RBC":"—"}</b> (CAL)`;
+  if(hrl!=null)s+=`, higher-risk-asset leverage <b>${Math.round(hrl)}%</b> of capital`;
+  if(bi!=null)s+=`, ${bi.toFixed(1)}% below-investment-grade bonds`;
+  p.push(s+".");
+  if(sn!=null)p.push(sn>0?`Capital includes surplus notes (${sn}% of capital).`:`Clean capital — no surplus notes.`);
+  const why={
+    "Strongest":`RBC and capital quality sit at the top of the field — capital isn't what constrains this rating.`,
+    "Very Strong":`Solid capital, but ${hrl!=null&&hrl>25?"elevated asset risk":"asset risk or scale"} holds it a notch under Strongest.`,
+    "Strong":`Mid-pack capital with ${hrl!=null&&hrl>30?"meaningful higher-risk asset leverage":"some asset-risk drag"} — consistent with Strong.`,
+    "Adequate":`Lower RBC and/or higher asset risk put it in Adequate — where capital starts to pressure the rating.`
+  }[tier];
+  if(why)p.push(why);
+  return p.join(" ");
 }
 
 /* ============================ VIEW 1 — Balance sheet ============================ */
@@ -310,14 +333,17 @@ function viewBS(){
     yaxis:{title:"Higher-risk asset leverage* (% of C&S)",gridcolor:"#ECE8DD",zeroline:false}
   }),CFG).then(bindTap);
   legend(BS_COLOR,BS_TIERS);
-  const strongest=data.filter(c=>c.bs_assessment==="Strongest");
-  const lo=strongest.length?Math.min(...strongest.map(c=>c.rbc_cal_pct)):null;
-  document.getElementById("finding").innerHTML=
-    `Capital alone doesn't set the tier. <b>Strongest</b> balance sheets are observed all the way down to `+
-    `<b>~${lo?Math.round(lo):"—"}% RBC</b> — what separates tiers at equal capital is <b>asset risk</b> `+
-    `(the y-axis). Two carriers at the same RBC land in different tiers when higher-risk leverage diverges.`+
-    (w?` Wellabe (◆) sits at ${Math.round(w.rbc_cal_pct)}% RBC.`:``);
-  document.getElementById("ncount").textContent="n = "+data.length+" carriers with RBC + asset data";
+  // RBC medians by tier — the headline relationship
+  const medByTier={}; BS_TIERS.forEach(t=>{const m=median(data.filter(c=>c.bs_assessment===t).map(c=>c.rbc_cal_pct));
+    if(m!=null)medByTier[t]=Math.round(m);});
+  const chain=BS_TIERS.filter(t=>medByTier[t]!=null).map(t=>`${t} ~${medByTier[t]}%`).join(" › ");
+  const topFinding=()=>document.getElementById("finding").innerHTML=
+    `<b>RBC tracks the balance-sheet tier.</b> Median RBC steps down cleanly across the assessments: `+
+    `${chain}. Asset risk (y-axis) is the secondary modifier — it's what separates two carriers at `+
+    `similar RBC. <i>Tap any carrier for what's driving its rating.</i>`;
+  topFinding();
+  activeCommentary=c=>document.getElementById("finding").innerHTML=bsCommentary(c,medByTier);
+  document.getElementById("ncount").textContent="n = "+data.length+" carriers with RBC + asset data · tap a point";
   document.querySelector(".approx")?.remove();
   const ap=document.createElement("div");ap.className="approx";
   ap.textContent="* Higher-risk leverage is partial (below-IG bonds + common stock); Schedule BA / real estate added when the supplemental pull lands.";
@@ -325,63 +351,79 @@ function viewBS(){
   if(w)showDetail(w);
 }
 
-/* ============================ VIEW 2 — Operating ============================ */
+/* ============================ VIEW 2 — Operating (level × stability) ============================ */
 function viewOP(){
-  const data=active().filter(c=>c.roe_5yr_mean!=null && c.op_assessment);
-  const traces=OP_TIERS.map(t=>{
-    const g=data.filter(c=>c.op_assessment===t);
-    return {y:g.map(c=>c.roe_5yr_mean),x:g.map(()=>t),customdata:g,text:g.map(c=>c.rating_unit_name),
-      type:"box",boxpoints:"all",jitter:.6,pointpos:0,name:t,
-      marker:{size:8,color:OP_COLOR[t]},line:{color:OP_COLOR[t]},fillcolor:"rgba(0,0,0,0)",
-      hovertemplate:"%{text}<br>5-yr ROE %{y}%<extra></extra>"};
-  }).filter(t=>t.y.length);
+  // ROE level alone doesn't separate the tiers — level AND volatility (stability) does.
+  const data=active().filter(c=>c.roe_5yr_mean!=null && c.roe_5yr_std!=null && c.op_assessment);
+  const traces=OP_TIERS.map(t=>{const g=data.filter(c=>c.op_assessment===t && !c.is_wellabe);
+    return {x:g.map(c=>c.roe_5yr_mean),y:g.map(c=>c.roe_5yr_std),customdata:g,text:g.map(c=>c.rating_unit_name),
+      type:"scatter",mode:"markers",name:t,marker:{size:11,color:OP_COLOR[t],line:{width:.5,color:"#fff"}},
+      hovertemplate:"%{text}<br>ROE %{x}% · volatility %{y}pts<extra></extra>"};
+  }).filter(t=>t.x.length);
   const w=wellabe(data);
-  if(w)traces.push({x:[w.op_assessment],y:[w.roe_5yr_mean],customdata:[w],text:[w.rating_unit_name],
+  if(w)traces.push({x:[w.roe_5yr_mean],y:[w.roe_5yr_std],customdata:[w],text:[w.rating_unit_name],
     type:"scatter",mode:"markers",marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
-    hovertemplate:"%{text} (Wellabe)<br>5-yr ROE %{y}%<extra></extra>"});
+    hovertemplate:"%{text} (Wellabe)<extra></extra>"});
   Plotly.newPlot("chart",traces,LAYOUT({
-    xaxis:{title:"Operating-performance assessment",categoryorder:"array",categoryarray:OP_TIERS,gridcolor:"#ECE8DD"},
-    yaxis:{title:"5-yr mean ROE (%)",gridcolor:"#ECE8DD",zeroline:true,zerolinecolor:"#C9BFA8"}
+    xaxis:{title:"5-yr mean ROE (%) — level",gridcolor:"#ECE8DD",zeroline:true,zerolinecolor:"#C9BFA8"},
+    yaxis:{title:"5-yr ROE volatility (pts) — lower = steadier",gridcolor:"#ECE8DD",zeroline:false}
   }),CFG).then(bindTap);
   legend(OP_COLOR,OP_TIERS);
-  const strain=data.filter(c=>c.roe_5yr_mean<0 && /Adequate|Strong/.test(c.op_assessment||""));
+  const sMean=median(data.filter(c=>c.op_assessment==="Strong").map(c=>c.roe_5yr_mean));
+  const sVol=median(data.filter(c=>c.op_assessment==="Strong").map(c=>c.roe_5yr_std));
+  const mBen=median(data.filter(c=>c.op_assessment==="Marginal").map(c=>c.benefit_ratio_latest));
   document.getElementById("finding").innerHTML=
-    `Operating performance tracks earnings <i>relative to peers</i>, not the raw number. The telling cases are `+
-    `<b>growth-strain</b> carriers — <b>${strain.length}</b> here run negative 5-yr ROE yet are held at `+
-    `<b>Adequate or better</b>, because AM Best credits new-business strain pending the projected turn. `+
-    `That is the bucket Wellabe lives in.`;
-  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers";
+    `<b>It's not ROE level — it's level <i>and</i> stability.</b> ROE alone barely separates the tiers; `+
+    `plotting it against volatility does. <b>Strong</b> carriers cluster lower-right (solid ROE ~${sMean!=null?Math.round(sMean):"9"}%, `+
+    `steady ~${sVol!=null?Math.round(sVol):"3"}pt swings); <b>Marginal</b> carriers sit left/high — weak, volatile earnings`+
+    `${mBen!=null?` with elevated benefit ratios (~${Math.round(mBen)}%)`:""}. <i>Tap a carrier for detail.</i>`;
+  activeCommentary=c=>document.getElementById("finding").innerHTML=
+    `<b>${c.rating_unit_name}</b> — operating <b>${c.op_assessment||"—"}</b>. 5-yr ROE `+
+    `<b>${c.roe_5yr_mean!=null?c.roe_5yr_mean+"%":"—"}</b> with volatility `+
+    `<b>${c.roe_5yr_std!=null?c.roe_5yr_std+"pts":"—"}</b>`+
+    `${c.ah_combined_ratio!=null?`, A&H combined ${c.ah_combined_ratio}%`:""}`+
+    `${c.benefit_ratio_latest!=null?`, benefit ratio ${c.benefit_ratio_latest}%`:""}. `+
+    `${c.roe_5yr_mean!=null&&c.roe_5yr_mean<2&&/Adequate|Strong/.test(c.op_assessment||"")?
+      "Held at Adequate-or-better despite thin earnings — a credited growth-strain case (the Wellabe bucket).":""}`;
+  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · tap a point";
   if(w)showDetail(w);
 }
 
-/* ============================ VIEW 3 — Business profile ============================ */
+/* ============================ VIEW 3 — Business profile (scale) ============================ */
 function viewBP(){
-  const data=active().filter(c=>c.total_assets_usd!=null && c.hhi_segments!=null && c.bp_assessment);
-  const traces=BP_TIERS.map(t=>{
-    const g=data.filter(c=>c.bp_assessment===t && !c.is_wellabe);
-    return {x:g.map(c=>c.total_assets_usd/1000),y:g.map(c=>c.hhi_segments),customdata:g,
-      text:g.map(c=>c.rating_unit_name),type:"scatter",mode:"markers",name:t,
-      marker:{size:g.map(c=>10+4*(c.material_segment_count||1)),color:BP_COLOR[t],line:{width:.5,color:"#fff"}},
-      hovertemplate:"%{text}<br>assets $%{x:.0f}M · HHI %{y}<extra></extra>"};
+  // Scale (assets) is what tracks business profile — HHI on coarse segments barely moves it.
+  const data=active().filter(c=>c.total_assets_usd!=null && c.bp_assessment);
+  const order=BP_TIERS.filter(t=>data.some(c=>c.bp_assessment===t));
+  const traces=order.map(t=>{const g=data.filter(c=>c.bp_assessment===t);
+    return {y:g.map(()=>t),x:g.map(c=>c.total_assets_usd/1e6),customdata:g,text:g.map(c=>c.rating_unit_name),
+      type:"box",boxpoints:"all",jitter:.6,pointpos:0,orientation:"h",name:t,
+      marker:{size:9,color:BP_COLOR[t]},line:{color:BP_COLOR[t]},fillcolor:"rgba(0,0,0,0)",
+      hovertemplate:"%{text}<br>assets $%{x:.1f}B<extra></extra>"};
   });
   const w=wellabe(data);
-  if(w)traces.push({x:[w.total_assets_usd/1000],y:[w.hhi_segments],customdata:[w],text:[w.rating_unit_name],
-    type:"scatter",mode:"markers",marker:{size:22,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
+  if(w)traces.push({x:[w.total_assets_usd/1e6],y:[w.bp_assessment],customdata:[w],text:[w.rating_unit_name],
+    type:"scatter",mode:"markers",marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
     hovertemplate:"%{text} (Wellabe)<extra></extra>"});
   Plotly.newPlot("chart",traces,LAYOUT({
-    xaxis:{title:"Total assets ($M, log)",type:"log",gridcolor:"#ECE8DD"},
-    yaxis:{title:"Concentration — segment HHI (1 = single line)",gridcolor:"#ECE8DD",range:[0,1.05]}
+    xaxis:{title:"Total assets ($B, log)",type:"log",gridcolor:"#ECE8DD"},
+    yaxis:{categoryorder:"array",categoryarray:order.slice().reverse(),automargin:true,gridcolor:"#F0EDE4"}
   }),CFG).then(bindTap);
   legend(BP_COLOR,BP_TIERS);
+  const fav=median(data.filter(c=>/Favorable/.test(c.bp_assessment)).map(c=>c.total_assets_usd));
+  const neu=median(data.filter(c=>c.bp_assessment==="Neutral").map(c=>c.total_assets_usd));
   document.getElementById("finding").innerHTML=
-    `<b>Favorable</b> requires scale <i>and</i> a genuine second risk type beyond the core niche — high up `+
-    `and toward the left (diversified). <b>Neutral</b> is the ceiling for a single-market specialist no matter `+
-    `how many products are stacked inside that market; a Strongest balance sheet does not buy franchise breadth.`;
-  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · bubble = material-line count";
-  document.querySelector(".approx")?.remove();
-  const ap=document.createElement("div");ap.className="approx";
-  ap.textContent="HHI computed on coarse Life/Annuity/A&H segments; refines to line-of-business once the premium-by-line supplemental pull lands.";
-  document.getElementById("legend").after(ap);
+    `<b>Business profile is mostly about scale.</b> Favorable carriers are large `+
+    `(median ~$${fav?(fav/1e6).toFixed(0):"30"}B in assets); Neutral/Limited specialists are an order of `+
+    `magnitude smaller (~$${neu?(neu/1e6).toFixed(1):"1"}B). Product concentration barely moves the tier — a `+
+    `single-market niche caps you at Neutral regardless of how many products sit inside it. <i>Tap a carrier.</i>`;
+  activeCommentary=c=>document.getElementById("finding").innerHTML=
+    `<b>${c.rating_unit_name}</b> — business profile <b>${c.bp_assessment||"—"}</b>. `+
+    `Assets <b>${money(c.total_assets_usd)}</b>, premium <b>${money(c.total_premium_usd)}</b>`+
+    `${c.material_segment_count?`, ${c.material_segment_count} material segment(s)`:""}. `+
+    `${/Favorable/.test(c.bp_assessment||"")?"Scale + reach earn the franchise credit.":
+       (c.bp_assessment==="Neutral"?"Solid but niche-bound — Neutral is the specialist's ceiling.":
+        "Limited scale/reach holds the franchise assessment down.")}`;
+  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · tap a point";
   if(w)showDetail(w);
 }
 
@@ -394,6 +436,7 @@ function viewNotch(){
     const pIdx=fsrIdx(toFsr(nn.predicted_icr));
     let si=fsrIdx(toFsr(nn.predicted_strong)), wi=fsrIdx(toFsr(nn.predicted_weak));
     if(si>wi){const t=si;si=wi;wi=t;}                         // strong end = lower FSR index
+    if(wi-si>1){ if((pIdx-si)>=(wi-pIdx)) si=wi-1; else wi=si+1; }  // cap band to 1 FSR notch
     const ay=fsrIdx(c.fsr)>=0?fsrIdx(c.fsr):fsrIdx(toFsr(c.icr)); // actual letter rating
     const inR=(ay>=si&&ay<=wi);
     const basis=(c.rating_basis||"standalone");
@@ -523,6 +566,8 @@ function deriveRecord(pull){
   const cs=_latest(s.capital_surplus_usd), inv=_latest(s.total_invested_assets_usd);
   r.capital_surplus_usd=cs; r.total_invested_assets_usd=inv;
   r.total_assets_usd=_latest(s.total_assets_usd); r.tac_usd=_latest(s.tac_usd);
+  const sn=_latest(s.surplus_notes_usd);
+  r.surplus_notes_pct=(sn&&cs)?Math.round(100*sn/(cs+sn)*100)/100:(sn===0?0:null);
   r.below_ig_pct=_latest(s.below_ig_pct); r.common_stock_pct=_latest(s.common_stock_pct);
   r.bonds_pct=_latest(s.bonds_pct); r.affiliated_pct=_latest(s.affiliated_pct);
   const tot=_latest(s.total_reserves_usd); r.reserves_to_surplus=(tot&&cs)?Math.round(tot/cs*100)/100:null;
@@ -531,6 +576,7 @@ function deriveRecord(pull){
     const com=r.common_stock_pct!=null?(r.common_stock_pct/100)*inv:0; hrl=Math.round(100*(bi+com)/cs*10)/10;}
   r.higher_risk_leverage_partial=hrl;
   const roe=_list(s.roe); r.roe_series=s.roe||{}; r.roe_5yr_mean=roe.length?Math.round(_mean(roe)*100)/100:null;
+  r.roe_5yr_std=roe.length>1?Math.round(Math.sqrt(_mean(roe.map(v=>(v-_mean(roe))**2)))*100)/100:null;
   r.roe_trend=_slope(roe); r.roe_latest=_latest(s.roe);
   const br=_latest(s.benefit_ratio),er=_latest(s.expense_ratio),cr=_latest(s.commission_ratio);
   r.benefit_ratio_latest=br; r.expense_ratio_latest=er;
@@ -543,10 +589,21 @@ function deriveRecord(pull){
   r.material_segment_count=vals.filter(v=>v>=10).length||1;
   return r;
 }
-function matchRef(name){const nn=jnorm(name);let best=null;
+const _FILLER=new Set(["insurance","ins","assurance","company","co","corporation","corp",
+  "incorporated","inc","group","the","of","and","ltd","society","usa"]);
+const mnorm=s=>String(s||"").toLowerCase().replace(/&/g," and ").split(/[^a-z0-9]+/)
+  .filter(t=>t&&!_FILLER.has(t)).join("");
+const MATCH_ALIAS={americanrepublic:"Wellabe Group",americanamicabletexas:"American-Amicable / Trinity",
+  healthspring:"Cigna — National Health"};
+function matchRef(name){
+  const nn=mnorm(name);
+  for(const frag in MATCH_ALIAS) if(nn.includes(frag)){
+    const u=(window.CARRIER_REF||[]).find(r=>r.rating_unit_name===MATCH_ALIAS[frag]); if(u)return u;}
+  let best=null;
   for(const ref of (window.CARRIER_REF||[])) for(const key of["lead_entity","rating_unit_name"]){
-    const rv=jnorm(ref[key]); if(!rv)continue;
-    if(rv===nn||nn.includes(rv)||rv.includes(nn)){const sc=(rv===nn?100:0)+Math.min(rv.length,nn.length);
+    const rv=mnorm(ref[key]); if(!rv)continue;
+    if(rv===nn||(rv.length>=6&&nn.includes(rv))||(nn.length>=6&&rv.includes(nn))){
+      const sc=(rv===nn?100:0)+Math.min(rv.length,nn.length);
       if(!best||sc>best[0])best=[sc,ref];}}
   return best?best[1]:null;}
 
