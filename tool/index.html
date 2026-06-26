@@ -78,10 +78,11 @@
 </header>
 
 <nav id="tabs">
-  <button data-view="bs" class="active">Balance&nbsp;Sheet</button>
+  <button data-view="bs" class="active">Balance</button>
   <button data-view="op">Operating</button>
-  <button data-view="bp">Business&nbsp;Profile</button>
+  <button data-view="bp">Business</button>
   <button data-view="notch">Notching</button>
+  <button data-view="wellabe">Wellabe</button>
   <button data-view="input">＋&nbsp;Data</button>
 </nav>
 
@@ -102,6 +103,16 @@
     </details>
   </div>
 
+  <div id="wellabePanel" class="card" style="display:none">
+    <div style="font-family:'EB Garamond',serif;font-size:18px;margin-bottom:2px">Wellabe rating calculator</div>
+    <div class="n" style="margin-top:0">Wellabe is rated <b>A</b> today — Strongest balance sheet, Adequate
+      operating, Neutral business profile, Appropriate ERM. Change any block to see how it moves the FSR
+      through AM Best's published baseline + notching tables.</div>
+    <div id="welForm" style="margin-top:12px"></div>
+    <div id="welResult" style="margin-top:14px"></div>
+    <div style="margin-top:12px"><button class="chip" id="welReset">Reset to current (A)</button></div>
+  </div>
+
   <div id="inputPanel" class="card" style="display:none">
     <div style="font-family:'EB Garamond',serif;font-size:18px;margin-bottom:4px">Load S&amp;P pulls</div>
     <div class="n" style="margin-top:0">Drop each carrier's <b>Life/Fraternal Financial Highlights</b> export
@@ -119,6 +130,7 @@
       <button class="chip" id="clearData" style="flex:1;text-align:center">Clear loaded data</button>
       <button class="chip on" id="goCharts" style="flex:1;text-align:center">View charts ▸</button>
     </div>
+    <button id="exportAll" class="chip" style="width:100%;text-align:center;margin-top:8px">⬇ Download all metrics + ratings (CSV for the paper)</button>
   </div>
 </main>
 
@@ -167,6 +179,60 @@ const FILT={stratum:new Set(),ownership:new Set(),anchors:false,labeled:false};
 /* ============================ data loading ============================ */
 /* boot() runs at the very end of the script (see final line) so every const helper
  * — LAYOUT, CFG, the view fns — is initialized before the first render(). */
+/* ===================== Wellabe rating calculator ===================== */
+const WEL_ERM=["Very Strong","Appropriate","Marginal","Weak","Very Weak"];
+const WEL_CUR={bs:"Strongest",op:"Adequate",bp:"Neutral",erm:"Appropriate"};
+let WEL={...WEL_CUR};
+function welComputeAll(w){
+  const BASE={Strongest:"a","Very Strong":"a-",Strong:"bbb+",Adequate:"bbb",Weak:"bb","Very Weak":"b-"};
+  const OP={"Very Strong":2,Strong:1,Adequate:0,Marginal:-1,Weak:-2,"Very Weak":-3};
+  const BP={"Very Favorable":2,Favorable:1,Neutral:0,Limited:-1,"Very Limited":-2};
+  const ERM={"Very Strong":1,Appropriate:0,Marginal:-1,Weak:-3,"Very Weak":-4};
+  const clamp=i=>Math.max(0,Math.min(ICR_SCALE.length-1,i));
+  const base=BASE[w.bs], nOP=OP[w.op]||0,nBP=BP[w.bp]||0,nERM=ERM[w.erm]||0, tot=nOP+nBP+nERM;
+  const idx=clamp(ICR_SCALE.indexOf(base)-tot);
+  return {base,nOP,nBP,nERM,tot,icr:ICR_SCALE[idx],idx,fsr:toFsr(ICR_SCALE[idx])};
+}
+function viewWellabe(){
+  const form=document.getElementById("welForm");
+  const sel=(id,label,opts)=>`<div style="margin:9px 0"><div class="lbl">${label}</div>
+    <select id="wel_${id}" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;background:var(--card)">
+    ${opts.map(o=>`<option ${o===WEL[id]?"selected":""}>${o}</option>`).join("")}</select></div>`;
+  form.innerHTML=sel("bs","Balance sheet strength",BS_TIERS)+sel("op","Operating performance",OP_TIERS)
+    +sel("bp","Business profile",BP_TIERS)+sel("erm","Enterprise risk management",WEL_ERM);
+  ["bs","op","bp","erm"].forEach(k=>{document.getElementById("wel_"+k).onchange=e=>{WEL[k]=e.target.value;welCalc();};});
+  welCalc();
+}
+function welCalc(){
+  const now=welComputeAll(WEL), cur=welComputeAll(WEL_CUR), delta=now.idx-cur.idx;
+  const sign=n=>n>0?"+"+n:""+n;
+  const deltaTxt=delta===0?"same as today's A":(delta>0?`${delta} notch${delta>1?"es":""} below today's A`:`${-delta} notch${-delta>1?"es":""} above today's A`);
+  const col=delta>0?"#C0392B":delta<0?"#2E7D5B":"var(--ink)";
+  document.getElementById("welResult").innerHTML=
+    `<div style="text-align:center;padding:16px;border-radius:12px;background:#F3F6FA;border:1px solid var(--line)">
+       <div style="font-size:13px;color:var(--muted)">Predicted FSR</div>
+       <div style="font-family:'EB Garamond',serif;font-size:48px;line-height:1;color:${col};margin:4px 0">${now.fsr||"—"}</div>
+       <div style="font-size:12.5px;color:var(--muted)">${deltaTxt}</div></div>
+     <div class="n" style="margin-top:10px">Baseline from <b>${WEL.bs}</b> balance sheet = ICR <b>${now.base}</b>; then `+
+    `operating ${sign(now.nOP)}, business profile ${sign(now.nBP)}, ERM ${sign(now.nERM)} = <b>${sign(now.tot)} net notch${Math.abs(now.tot)===1?"":"es"}</b> `+
+    `→ ICR <b>${now.icr}</b> → FSR <b>${now.fsr}</b>.</div>
+     <div class="approx" style="margin-top:6px">Uses AM Best's published baseline + notch tables (midpoint notches). ERM is capture-only in the field model; the comprehensive adjustment can shift the committee result ±1.</div>`;
+}
+
+/* ===================== full data export (for the white paper) ===================== */
+function exportAllCSV(){
+  if(!CARRIERS.length){ alert("Load pulls first (＋ Data)."); return; }
+  const cols=["rating_unit_name","naic_code","fsr","icr","outlook","bs_assessment","op_assessment",
+    "bp_assessment","erm_assessment","rating_basis","rbc_cal_pct","tac_usd","capital_surplus_usd",
+    "higher_risk_leverage_partial","below_ig_pct","surplus_notes_pct","roe_5yr_mean","roe_5yr_std",
+    "ah_combined_ratio","benefit_ratio_latest","total_assets_usd","total_premium_usd","hhi_segments",
+    "material_segment_count","stratum"];
+  const esc=v=>{if(v==null)return"";v=""+v;return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const rows=[cols.join(",")].concat(CARRIERS.map(c=>cols.map(k=>esc(c[k])).join(",")));
+  const blob=new Blob([rows.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ambest_decoder_all_metrics.csv";a.click();
+}
+
 function boot(){
   // Start empty every session — no preload. Clear any stale cache from earlier versions.
   try{ localStorage.removeItem(STORE_KEY); }catch(e){}
@@ -227,17 +293,18 @@ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
 function render(){
   document.querySelectorAll(".approx").forEach(e=>e.remove()); // clear per-view footnotes
   document.getElementById("chart").style.height="";            // reset (notch sets its own)
-  const isInput=VIEW==="input";
+  const isInput=VIEW==="input", isWel=VIEW==="wellabe", isChart=!isInput&&!isWel;
   document.getElementById("inputPanel").style.display=isInput?"block":"none";
-  document.getElementById("chartCard").style.display=isInput?"none":"block";
-  document.getElementById("findingCard").style.display=isInput?"none":"block";
-  document.querySelector(".actionbar").style.display=isInput?"none":"flex";
+  document.getElementById("wellabePanel").style.display=isWel?"block":"none";
+  document.getElementById("chartCard").style.display=isChart?"block":"none";
+  document.getElementById("findingCard").style.display=isChart?"block":"none";
+  document.querySelector(".actionbar").style.display=isChart?"flex":"none";
   const isBlock=["bs","op","bp"].includes(VIEW);
   document.getElementById("axisToggleRow").style.display=(isBlock&&CARRIERS.length)?"flex":"none";
-  if(!isInput && !CARRIERS.length){ emptyState(); return; }
-  if(!isInput){ const ch=document.getElementById("chart");   // clear any leftover empty-state HTML
+  if(isChart && !CARRIERS.length){ emptyState(); return; }
+  if(isChart){ const ch=document.getElementById("chart");   // clear any leftover empty-state HTML
     if(!ch.querySelector(".plotly")) ch.innerHTML=""; }
-  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch,input:viewInput}[VIEW])();
+  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch,input:viewInput,wellabe:viewWellabe}[VIEW])();
 }
 function emptyState(){
   Plotly.purge("chart");
@@ -645,6 +712,8 @@ function viewInput(){
 }
 function initInput(){
   document.getElementById("axisToggle").onclick=()=>{SECOND=!SECOND;render();};
+  document.getElementById("exportAll").onclick=exportAllCSV;
+  document.getElementById("welReset").onclick=()=>{WEL={...WEL_CUR};viewWellabe();};
   const drop=document.getElementById("drop"), fi=document.getElementById("fileInput");
   drop.onclick=()=>fi.click();
   fi.onchange=()=>{ if(fi.files.length){document.getElementById("loadLog").innerHTML="";handleFiles([...fi.files]);} };
