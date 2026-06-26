@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
 <script src="./plotly.min.js" charset="utf-8"></script>
+<script src="./xlsx.full.min.js" charset="utf-8"></script>
+<script src="./carriers.js" charset="utf-8"></script>
 <style>
   :root{
     --ink:#0B1C2C; --accent:#2E5A88; --paper:#F7F5EF; --card:#FFFFFF;
@@ -72,7 +74,7 @@
 <header>
   <h1>AM Best Rating Decoder</h1>
   <div class="sub">How capital, earnings &amp; franchise map to the assessment blocks · Wellabe OCA</div>
-  <span id="dataBadge" class="badge demo">demo data</span>
+  <span id="dataBadge" class="badge demo">no data — load in ＋ Data</span>
 </header>
 
 <nav id="tabs">
@@ -80,20 +82,40 @@
   <button data-view="op">Operating</button>
   <button data-view="bp">Business&nbsp;Profile</button>
   <button data-view="notch">Notching</button>
+  <button data-view="input">＋&nbsp;Data</button>
 </nav>
 
 <main>
-  <div class="card">
+  <div id="chartCard" class="card">
     <div id="chart" class="chart"></div>
     <div id="legend" class="legend"></div>
   </div>
-  <div class="card">
+  <div id="findingCard" class="card">
     <div id="finding" class="finding"></div>
     <div id="ncount" class="n"></div>
     <details id="detailWrap">
       <summary>Tap a point for that carrier · or open the table</summary>
       <div id="detail" style="margin-top:8px"></div>
     </details>
+  </div>
+
+  <div id="inputPanel" class="card" style="display:none">
+    <div style="font-family:'EB Garamond',serif;font-size:18px;margin-bottom:4px">Load S&amp;P pulls</div>
+    <div class="n" style="margin-top:0">Drop each carrier's <b>Life/Fraternal Financial Highlights</b> export
+      (.xlsx). Everything is parsed <b>in your browser</b> — nothing is uploaded. Assessment labels are
+      matched automatically from the built-in roster.</div>
+    <div id="drop" style="margin-top:12px;border:1.5px dashed var(--accent);border-radius:12px;
+      padding:22px 14px;text-align:center;background:#F3F6FA;cursor:pointer">
+      <div style="font-weight:600;color:var(--accent)">Tap to choose files, or drop them here</div>
+      <div class="n" style="margin-top:4px">accepts many .xlsx at once</div>
+      <input id="fileInput" type="file" accept=".xlsx" multiple style="display:none" />
+    </div>
+    <div id="loadStat" class="n" style="margin-top:10px"></div>
+    <div id="loadLog" style="margin-top:8px;font-size:12.5px"></div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="chip" id="clearData" style="flex:1;text-align:center">Clear loaded data</button>
+      <button class="chip on" id="goCharts" style="flex:1;text-align:center">View charts ▸</button>
+    </div>
   </div>
 </main>
 
@@ -127,25 +149,19 @@ const OP_COLOR={"Very Strong":"#1F4E79","Strong":"#2E5A88","Adequate":"#5B8AB5",
 const BP_COLOR={"Very Favorable":"#1F4E79","Favorable":"#2E5A88","Neutral":"#5B8AB5",
   "Limited":"#E0A458","Very Limited":"#B5402E","":"#AAB2BA"};
 const ICR_SCALE=["aaa","aa+","aa","aa-","a+","a","a-","bbb+","bbb","bbb-","bb+","bb","bb-","b+","b","b-"];
+const BAND_TOL=1; // +/- notches around the point estimate (mirror of notching.BAND_TOLERANCE)
 
-/* embedded DEMO dataset — representative, clearly-labeled synthetic data so all four
- * views are reviewable before the real data.json is populated. The tool fetches
- * ./data.json on load and switches to it once it carries enough assessment-labeled rows. */
-const DEMO = buildDemo();
-let CARRIERS=DEMO, IS_LIVE=false, VIEW="bs";
+let CARRIERS=[], IS_LIVE=false, VIEW="bs";   // real data only — loaded via ./data.json or the +Data tab
 const FILT={stratum:new Set(),ownership:new Set(),anchors:false,labeled:false};
 
 /* ============================ data loading ============================ */
+initInput();
 fetch("./data.json").then(r=>r.ok?r.json():null).then(j=>{
   if(j&&j.carriers&&j.carriers.length){
-    const labeled=j.carriers.filter(c=>c.bs_assessment);
-    // use live data only when it carries enough labeled carriers to be worth showing
-    if(labeled.length>=8){ CARRIERS=j.carriers; IS_LIVE=true;
-      document.getElementById("dataBadge").className="badge live";
-      document.getElementById("dataBadge").textContent="live data · "+labeled.length+" rated carriers";
-    } else {
-      document.getElementById("dataBadge").textContent="demo data ("+labeled.length+" live rows pending)";
-    }
+    CARRIERS=j.carriers; IS_LIVE=true;
+    const labeled=j.carriers.filter(c=>c.bs_assessment).length;
+    const b=document.getElementById("dataBadge"); b.className="badge live";
+    b.textContent="live data · "+CARRIERS.length+" carriers · "+labeled+" rated";
   }
   buildFilters(); render();
 }).catch(()=>{ buildFilters(); render(); });
@@ -203,7 +219,31 @@ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
 /* ============================ render dispatch ============================ */
 function render(){
   document.querySelectorAll(".approx").forEach(e=>e.remove()); // clear per-view footnotes
-  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch}[VIEW])();
+  document.getElementById("chart").style.height="";            // reset (notch sets its own)
+  const isInput=VIEW==="input";
+  document.getElementById("inputPanel").style.display=isInput?"block":"none";
+  document.getElementById("chartCard").style.display=isInput?"none":"block";
+  document.getElementById("findingCard").style.display=isInput?"none":"block";
+  document.querySelector(".actionbar").style.display=isInput?"none":"flex";
+  if(!isInput && !CARRIERS.length){ emptyState(); return; }
+  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch,input:viewInput}[VIEW])();
+}
+function emptyState(){
+  Plotly.purge("chart");
+  document.getElementById("chart").innerHTML=
+    `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;
+      text-align:center;color:var(--muted);padding:24px">
+      <div style="font-family:'EB Garamond',serif;font-size:19px;color:var(--ink)">No data loaded</div>
+      <div style="margin-top:8px;font-size:14px">Open the <b>＋ Data</b> tab and drop in the S&amp;P
+      Financial Highlights exports — everything is parsed in your browser.</div>
+      <button onclick="document.querySelector('#tabs button[data-view=&quot;input&quot;]').click()"
+        style="margin-top:16px;padding:10px 18px;border-radius:10px;border:1px solid var(--accent);
+        background:var(--accent);color:#fff;font:inherit;font-weight:600;cursor:pointer">＋ Load data</button>
+    </div>`;
+  document.getElementById("legend").innerHTML="";
+  document.getElementById("finding").innerHTML="";
+  document.getElementById("ncount").textContent="";
+  document.getElementById("detail").innerHTML="";
 }
 
 function legend(map,tiers){
@@ -261,7 +301,7 @@ function viewBS(){
     `<b>~${lo?Math.round(lo):"—"}% RBC</b> — what separates tiers at equal capital is <b>asset risk</b> `+
     `(the y-axis). Two carriers at the same RBC land in different tiers when higher-risk leverage diverges.`+
     (w?` Wellabe (◆) sits at ${Math.round(w.rbc_cal_pct)}% RBC.`:``);
-  document.getElementById("ncount").textContent="n = "+data.length+" carriers with RBC + asset data"+(IS_LIVE?"":" · DEMO");
+  document.getElementById("ncount").textContent="n = "+data.length+" carriers with RBC + asset data";
   document.querySelector(".approx")?.remove();
   const ap=document.createElement("div");ap.className="approx";
   ap.textContent="* Higher-risk leverage is partial (below-IG bonds + common stock); Schedule BA / real estate added when the supplemental pull lands.";
@@ -294,7 +334,7 @@ function viewOP(){
     `<b>growth-strain</b> carriers — <b>${strain.length}</b> here run negative 5-yr ROE yet are held at `+
     `<b>Adequate or better</b>, because AM Best credits new-business strain pending the projected turn. `+
     `That is the bucket Wellabe lives in.`;
-  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers"+(IS_LIVE?"":" · DEMO");
+  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers";
   if(w)showDetail(w);
 }
 
@@ -321,7 +361,7 @@ function viewBP(){
     `<b>Favorable</b> requires scale <i>and</i> a genuine second risk type beyond the core niche — high up `+
     `and toward the left (diversified). <b>Neutral</b> is the ceiling for a single-market specialist no matter `+
     `how many products are stacked inside that market; a Strongest balance sheet does not buy franchise breadth.`;
-  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · bubble = material-line count"+(IS_LIVE?"":" · DEMO");
+  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · bubble = material-line count";
   document.querySelector(".approx")?.remove();
   const ap=document.createElement("div");ap.className="approx";
   ap.textContent="HHI computed on coarse Life/Annuity/A&H segments; refines to line-of-business once the premium-by-line supplemental pull lands.";
@@ -331,52 +371,61 @@ function viewBP(){
 
 /* ============================ VIEW 4 — Notching ============================ */
 function viewNotch(){
-  const data=active().filter(c=>c.notching&&c.notching.predicted_icr&&c.icr);
   const idx=s=>{const i=ICR_SCALE.indexOf((s||"").trim().toLowerCase());return i<0?null:i;};
-  // verdict per carrier: in-range / group-aligned / genuine residual
+  const data=active().filter(c=>c.notching&&c.notching.predicted_icr&&c.icr&&idx(c.icr)!=null);
+  // verdict per carrier
   const pts=data.map(c=>{
     const nn=c.notching, ay=idx(c.icr);
     const si=nn.strong_idx!=null?nn.strong_idx:idx(nn.predicted_strong);
     const wi=nn.weak_idx!=null?nn.weak_idx:idx(nn.predicted_weak);
-    const inR = (nn.in_range!=null)?nn.in_range:(ay!=null&&si!=null&&ay>=si&&ay<=wi);
+    const pIdx=idx(nn.predicted_icr);
+    const inR=(nn.in_range!=null)?nn.in_range:(ay>=si&&ay<=wi);
     const basis=(c.rating_basis||"standalone");
-    const verdict = inR?"in":(basis==="group-member"?"group":"resid");
-    return {c, px:idx(nn.predicted_icr), ay, si, wi, verdict};
-  }).filter(p=>p.px!=null&&p.ay!=null);
+    return {c, pIdx, si, wi, ay, basis, verdict: inR?"in":(basis==="group-member"?"group":"resid")};
+  }).filter(p=>p.pIdx!=null);
+  // sort weakest→strongest predicted so the forest reads top(strong)→bottom; Wellabe forced visible
+  pts.sort((a,b)=> b.pIdx-a.pIdx || (a.c.rating_unit_name<b.c.rating_unit_name?-1:1));
+  const names=pts.map(p=>p.c.rating_unit_name);
   const COL={in:"#2E5A88",group:"#E0A458",resid:"#B5402E"};
-  const mk=(key,size,label)=>{const arr=pts.filter(p=>p.verdict===key&&!p.c.is_wellabe);
-    return {x:arr.map(p=>p.px),y:arr.map(p=>p.ay),customdata:arr.map(p=>p.c),
-      text:arr.map(p=>p.c.rating_unit_name),type:"scatter",mode:key==="in"?"markers":"markers+text",
-      textposition:"top center",textfont:{size:9,color:"#5C6B78"},name:label,
-      marker:{size:size,color:COL[key],line:{width:.5,color:"#fff"}},
-      hovertemplate:"%{text}<br>predicted "+("%{x}")+" · actual %{y}<extra></extra>"};};
-  const diagTrace={x:[0,15],y:[0,15],type:"scatter",mode:"lines",line:{dash:"dot",color:"#C9BFA8",width:1},hoverinfo:"skip"};
-  const traces=[diagTrace,mk("in",10,"in band"),mk("group",12,"group-aligned"),mk("resid",13,"residual")];
+  // predicted ±1 band as a horizontal whisker (error bar on the predicted point)
+  const bandTrace={x:pts.map(p=>p.pIdx),y:names,customdata:pts.map(p=>p.c),type:"scatter",mode:"markers",
+    marker:{symbol:"line-ns-open",size:1,color:"rgba(0,0,0,0)"},
+    error_x:{type:"data",symmetric:false,
+      array:pts.map(p=>p.wi-p.pIdx),arrayminus:pts.map(p=>p.pIdx-p.si),
+      color:"#9AA7B2",thickness:6,width:0},
+    hovertemplate:"%{y}<br>predicted band ±1 notch<extra></extra>",showlegend:false};
+  // actual ICR marker, colored by verdict
+  const mk=(key)=>{const a=pts.filter(p=>p.verdict===key);
+    return {x:a.map(p=>p.ay),y:a.map(p=>p.c.rating_unit_name),customdata:a.map(p=>p.c),
+      type:"scatter",mode:"markers",marker:{size:11,color:COL[key],line:{width:.5,color:"#fff"}},
+      hovertemplate:"%{y}<br>actual %{x}<extra></extra>",showlegend:false};};
+  const traces=[bandTrace,mk("in"),mk("group"),mk("resid")];
   const w=pts.find(p=>p.c.is_wellabe);
-  if(w)traces.push({x:[w.px],y:[w.ay],customdata:[w.c],text:[w.c.rating_unit_name],type:"scatter",mode:"markers",
-    marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
-    hovertemplate:"%{text} (Wellabe)<extra></extra>"});
-  Plotly.newPlot("chart",traces,LAYOUT({
-    xaxis:{title:"Predicted ICR (baseline + notches)",tickvals:ICR_SCALE.map((_,i)=>i),ticktext:ICR_SCALE,
-      tickangle:-45,gridcolor:"#ECE8DD",range:[-.5,Math.min(13,ICR_SCALE.length-1)]},
-    yaxis:{title:"Actual ICR",tickvals:ICR_SCALE.map((_,i)=>i),ticktext:ICR_SCALE,
-      gridcolor:"#ECE8DD",range:[-.5,Math.min(13,ICR_SCALE.length-1)],autorange:"reversed"}
-  }),CFG).then(bindTap);
+  if(w)traces.push({x:[w.ay],y:[w.c.rating_unit_name],customdata:[w.c],type:"scatter",mode:"markers",
+    marker:{size:16,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
+    hovertemplate:"%{y} (Wellabe)<extra></extra>",showlegend:false});
+  const span=[Math.max(0,Math.min(...pts.map(p=>Math.min(p.si,p.ay)))-1),
+              Math.min(ICR_SCALE.length-1,Math.max(...pts.map(p=>Math.max(p.wi,p.ay)))+1)];
+  const H=Math.max(360, pts.length*22+60);
+  document.getElementById("chart").style.height=H+"px";
+  Plotly.newPlot("chart",traces,Object.assign(LAYOUT({
+    xaxis:{tickvals:ICR_SCALE.map((_,i)=>i),ticktext:ICR_SCALE,side:"top",gridcolor:"#ECE8DD",range:span},
+    yaxis:{automargin:true,tickfont:{size:9},gridcolor:"#F0EDE4"}
+  }),{margin:{l:8,r:12,t:34,b:10}}),CFG).then(bindTap);
   document.getElementById("legend").innerHTML=
-    `<span><i style="background:#2E5A88"></i>in predicted band</span>`+
+    `<span><i style="background:#9AA7B2"></i>predicted ±1-notch band</span>`+
+    `<span><i style="background:#2E5A88"></i>actual in band</span>`+
     `<span><i style="background:#E0A458"></i>group-aligned</span>`+
-    `<span><i style="background:#B5402E"></i>genuine residual</span>`+
-    `<span class="wmark">◆ Wellabe</span>`;
+    `<span><i style="background:#B5402E"></i>residual</span><span class="wmark">◆ Wellabe</span>`;
   const nIn=pts.filter(p=>p.verdict==="in").length, nG=pts.filter(p=>p.verdict==="group").length,
         nR=pts.filter(p=>p.verdict==="resid").length;
-  const sa=pts.filter(p=>(p.c.rating_basis||"standalone")==="standalone");
-  const saIn=sa.filter(p=>p.verdict==="in").length;
+  const sa=pts.filter(p=>p.basis==="standalone"), saIn=sa.filter(p=>p.verdict==="in").length;
   document.getElementById("finding").innerHTML=
-    `Knowing the four labels brackets the rating to a <b>band</b>, not a point. <b>${nIn}</b> carriers land `+
-    `in their predicted band; <b>${nG}</b> are <b>group-aligned</b> (rated at the parent/group level, `+
-    `beyond the standalone blocks). Of carriers rated on their own merits, <b>${saIn}/${sa.length}</b> fall in band — `+
-    `the ${nR} genuine residual${nR===1?"":"s"} are the committee-judgment cases.`;
-  document.getElementById("ncount").textContent="n = "+pts.length+" carriers with predicted + actual ICR"+(IS_LIVE?"":" · DEMO");
+    `Each grey bar is the reconstruction's <b>±1-notch</b> prediction; the dot is the actual ICR. `+
+    `<b>${nIn}/${pts.length}</b> land in band. Of carriers rated standalone, <b>${saIn}/${sa.length}</b> fall in band; `+
+    `the <b>${nG}</b> amber points are <b>group-aligned</b> (rated at the parent/group level), and `+
+    `${nR} red are genuine residuals — the committee-judgment cases.`;
+  document.getElementById("ncount").textContent="n = "+pts.length+" carriers (predicted band vs actual ICR)";
   if(w)showDetail(w.c);
 }
 
@@ -394,78 +443,180 @@ document.getElementById("exportBtn").onclick=async()=>{
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=base+"_data.csv";a.click();
 };
 
-/* ============================ synthetic demo data ============================ */
-function buildDemo(){
-  // [name, stratum, ownership, rbc, hrl, roe5, bs, op, bp, assets($000), hhi, fsr, icr, erm, wellabe]
-  const R=[
-   ["Wellabe Group","core","mutual",648,13,-7.4,"Strongest","Adequate","Neutral",2300000,.78,"A","a","Appropriate",1],
-   ["Physicians Mutual","core;transition","mutual",1200,9,-2.1,"Strongest","Strong","Neutral",6800000,.66,"A+","aa-","Appropriate",0],
-   ["Mutual of Omaha","core","mutual",434,6,-1.4,"Very Strong","Strong","Favorable",11800000,.48,"A+","aa-","Appropriate",0],
-   ["Guarantee Trust Life","core","mutual",809,28,13.1,"Strongest","Strong","Limited",946000,.77,"A","a","Appropriate",0],
-   ["Aflac (Continental American)","core;anchor","stock",950,8,18,"Strongest","Strong","Favorable",4200000,.6,"A+","aa","Very Strong",0],
-   ["Globe Life (United American)","core","stock",316,12,14,"Strong","Strong","Favorable",5600000,.55,"A","a+","Appropriate",0],
-   ["CNO — Bankers Life","core","stock",380,18,9,"Very Strong","Strong","Neutral",18000000,.5,"A","a","Appropriate",0],
-   ["CNO — Washington National","core","stock",375,16,8,"Very Strong","Strong","Neutral",6500000,.62,"A","a","Appropriate",0],
-   ["Combined Insurance (Chubb)","core","stock",520,10,16,"Strong","Strong","Neutral",3900000,.58,"A+","aa-","Appropriate",0],
-   ["Humana Insurance Co","core","stock",240,22,11,"Adequate","Strong","Favorable",9000000,.7,"A","a","Appropriate",0],
-   ["UnitedHealthcare Insurance Co","core;anchor","stock",300,20,15,"Strong","Strong","Very Favorable",22000000,.72,"A","a+","Appropriate",0],
-   ["Pekin Life","core","stock",470,11,3,"Very Strong","Marginal","Neutral",1700000,.5,"A-","a-","Appropriate",0],
-   ["Lumico (RGA)","core","stock",560,9,-12,"Very Strong","Marginal","Limited",700000,.85,"A","a","Appropriate",0],
-   ["American National","core","stock",430,17,6,"Very Strong","Adequate","Favorable",30000000,.4,"A","a","Appropriate",0],
-   ["Std Life & Accident","core","stock",520,8,5,"Very Strong","Adequate","Limited",900000,.8,"A-","a-","Appropriate",0],
-   ["ManhattanLife Assurance","core;low","stock",290,24,2,"Adequate","Marginal","Limited",1400000,.6,"B++","bbb+","Marginal",0],
-   ["Continental General","low","stock",210,33,-5,"Adequate","Weak","Limited",4200000,.7,"B++","bbb","Marginal",0],
-   ["National Guardian Life","preneed","mutual",520,14,4,"Strong","Adequate","Limited",5100000,.74,"A","a","Appropriate",0],
-   ["Homesteaders Life","preneed","mutual",430,12,5,"Very Strong","Adequate","Limited",3600000,.9,"A-","a-","Appropriate",0],
-   ["Funeral Directors Life","preneed","stock",380,15,7,"Strong","Strong","Limited",4000000,.88,"A-","a-","Appropriate",0],
-   ["Security National","preneed","stock",300,20,6,"Adequate","Adequate","Limited",1300000,.82,"B++","bbb+","Appropriate",0],
-   ["Assurity Life","preneed","mutual",700,10,3,"Strongest","Adequate","Neutral",2900000,.55,"A-","a-","Appropriate",0],
-   ["USAA Life","anchor","stock",480,9,12,"Very Strong","Strong","Favorable",30000000,.5,"A++","aaa","Appropriate",0],
-   ["Thrivent","anchor","fraternal",700,11,8,"Strongest","Strong","Favorable",110000000,.45,"A++","aa+","Very Strong",0],
-   ["State Farm Life","anchor","mutual",1100,7,9,"Strongest","Strong","Favorable",95000000,.5,"A+","aa","Appropriate",0],
-   ["Northwestern Mutual","anchor","mutual",1050,12,10,"Strongest","Very Strong","Very Favorable",330000000,.4,"A++","aaa","Very Strong",0],
-   ["New York Life","anchor","mutual",980,13,9,"Strongest","Very Strong","Very Favorable",220000000,.42,"A++","aaa","Very Strong",0],
-   ["MassMutual","anchor","mutual",900,15,8,"Strongest","Strong","Very Favorable",290000000,.43,"A++","aa+","Very Strong",0],
-   ["Guardian Life","anchor","mutual",870,12,7,"Strongest","Strong","Favorable",75000000,.5,"A++","aa+","Very Strong",0],
-   ["Lincoln National Life","variance","stock",380,26,4,"Strong","Strong","Favorable",290000000,.45,"A","a+","Appropriate",0],
-   ["Penn Mutual","variance","mutual",620,18,6,"Strongest","Strong","Favorable",36000000,.5,"A+","aa-","Appropriate",0],
-   ["Bankers Fidelity (Atlantic Am.)","core;transition","stock",330,15,1,"Strong","Marginal","Limited",350000,.7,"A-","a-","Appropriate",0],
-   ["American Southern (Atlantic Am.)","transition","stock",420,12,3,"Strong","Adequate","Limited",400000,.65,"A-","a-","Appropriate",0]
-  ];
-  return R.map((r,i)=>({rating_unit_name:r[0],lead_entity:r[0],stratum:r[1],ownership:r[2],
-    rbc_cal_pct:r[3],higher_risk_leverage_partial:r[4],roe_5yr_mean:r[5],
-    bs_assessment:r[6],op_assessment:r[7],bp_assessment:r[8],
-    total_assets_usd:r[9],hhi_segments:r[10],material_segment_count:Math.max(1,Math.round((1-r[10])*5)),
-    fsr:r[11],icr:r[12],erm_assessment:r[13],is_wellabe:!!r[14],
-    ah_combined_ratio:Math.round(85+r[4]/2),
-    rating_basis:isGroupMember(r[0])?"group-member":"standalone",
-    notching:notchPredict(r[6],r[7],r[8],r[13],r[12])}));
+/* ===================== in-browser S&P pull parser (mirror of src/) ===================== */
+const ALIASES={ // target -> source row labels (mirror parse_sp_pull.ALIASES)
+  total_invested_assets_usd:["Total Cash and Investments","Total Cash & Investments"], total_assets_usd:["Total Assets"],
+  total_reserves_usd:["Total Policy Reserves"], avr_usd:["Asset Valuation Reserve"],
+  surplus_notes_usd:["Surplus Notes"], capital_surplus_usd:["Capital and Surplus","Capital & Surplus"],
+  tac_usd:["RBC - Total Adjusted Capital","Total Adjusted Capital"],
+  acl_rbc_usd:["ACL Risk Based Capital"], rbc_acl_ratio:["Risk Based Capital Ratio(TAC/ACL RBC)","Risk Based Capital Ratio (TAC/ACL RBC) (%)","Risk Based Capital Ratio"],
+  combined_ratio_direct:["Combined Ratio"],
+  bonds_pct:["Unaff. Bonds / Unaff. Investments"], common_stock_pct:["Unaff. Common Stocks / Unaff. Investments"],
+  affiliated_pct:["Affiliated Investments / Total Investments"], below_ig_pct:["Bonds Rated 3-6 / Total Bonds"],
+  bond_avg_quality:["Bond Average Asset Quality (1-6) (#)"], total_premium:["Premiums, Consideration & Deposits"],
+  net_investment_income:["Net Investment Income"], realized_gains:["Net Realized Capital Gains (Losses)","Net Realized Capital Gains"],
+  net_income:["Net Income"], pretax_op_income:["Pre-tax Operating Income"],
+  roe:["Return on Average Equity"], roa:["Return on Average Assets"],
+  benefit_ratio:["Benefit Ratio (Premiums)"], expense_ratio:["Expense Ratio (Premiums)"],
+  commission_ratio:["Commission Ratio"],
+  seg_individual_life:["Individual Life"], seg_group_life:["Group Life"],
+  seg_individual_annuity:["Individual Annuities"], seg_group_annuity:["Group Annuities"], seg_ah:["Accident & Health"]
+};
+const jnorm=s=>String(s==null?"":s).toLowerCase().replace(/[^a-z0-9]/g,"");
+const NORM2T={}; for(const t in ALIASES) ALIASES[t].forEach(l=>{const k=jnorm(l); if(!(k in NORM2T))NORM2T[k]=t;});
+
+function parseHighlights(aoa){
+  // find year columns from the 'Period Ended' row (Dec dates only)
+  let ycols={};
+  for(const row of aoa){
+    if(jnorm(row[0])===jnorm("Period Ended")){
+      for(let c=1;c<row.length;c++){const v=row[c];
+        if(v instanceof Date && v.getMonth()===11) ycols[c]=v.getFullYear();}
+      break;
+    }
+  }
+  if(!Object.keys(ycols).length){ // fallback: header strings like "2024 Y"
+    for(let r=0;r<Math.min(12,aoa.length);r++) for(let c=1;c<aoa[r].length;c++){
+      const m=String(aoa[r][c]||"").match(/(19|20)\d{2}/);
+      if(m && !/ytd/i.test(String(aoa[r][c]))) ycols[c]=+m[0];
+    }
+  }
+  let name="", entity=null;
+  for(let r=0;r<Math.min(6,aoa.length);r++){const a=String(aoa[r][0]||"");
+    if(a.includes("|")&&!name) name=a.split("|")[0].trim();
+    const m=a.match(/STAT ENTITY KEY:\s*(\S+)/); if(m)entity=m[1];}
+  const series={}, seen={}, unmatched=[];
+  for(const row of aoa){
+    const label=row[0]; if(label==null||String(label).trim()==="")continue;
+    const t=NORM2T[jnorm(label)];
+    if(!t){ if(row.slice(1,6).some(v=>typeof v==="number")) unmatched.push(String(label).trim()); continue; }
+    if(seen[t])continue; seen[t]=1; const by={};
+    for(const c in ycols){const v=row[c]; if(typeof v==="number") by[ycols[c]]=v;}
+    if(Object.keys(by).length) series[t]=by;
+  }
+  return {name:name||"(unknown)", entity, years:[...new Set(Object.values(ycols))].sort(), series, unmatched};
 }
-/* mirror of src/notching.py (point + range model) for the demo notching view */
-function isGroupMember(name){
-  return /aflac|globe|cno|aetna|cigna|humana|unitedhealth|combined|lumico|std life|standard life|american[- ]amicable|trinity|forethought|usaa|state farm|sentinel|bankers fidelity|american southern/i.test(name);
+
+// --- feature derivation (mirror of src/features.py, view-relevant subset) ---
+const _latest=s=>{if(!s)return null;const y=Math.max(...Object.keys(s).map(Number));return s[y];};
+const _list=s=>s?Object.keys(s).map(Number).sort((a,b)=>a-b).map(y=>s[y]):[];
+const _mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+function _slope(a){const n=a.length;if(n<2)return null;const xs=a.map((_,i)=>i);
+  const xb=_mean(xs),yb=_mean(a);let num=0,den=0;for(let i=0;i<n;i++){num+=(xs[i]-xb)*(a[i]-yb);den+=(xs[i]-xb)**2;}return den?num/den:null;}
+function deriveRecord(pull){
+  const s=pull.series, r={};
+  const rbc=_latest(s.rbc_acl_ratio); r.rbc_cal_pct=rbc!=null?Math.round(rbc/2*10)/10:null;
+  const cs=_latest(s.capital_surplus_usd), inv=_latest(s.total_invested_assets_usd);
+  r.capital_surplus_usd=cs; r.total_invested_assets_usd=inv;
+  r.total_assets_usd=_latest(s.total_assets_usd); r.tac_usd=_latest(s.tac_usd);
+  r.below_ig_pct=_latest(s.below_ig_pct); r.common_stock_pct=_latest(s.common_stock_pct);
+  r.bonds_pct=_latest(s.bonds_pct); r.affiliated_pct=_latest(s.affiliated_pct);
+  const tot=_latest(s.total_reserves_usd); r.reserves_to_surplus=(tot&&cs)?Math.round(tot/cs*100)/100:null;
+  let hrl=null;
+  if(cs&&inv){let bi=0; if(r.below_ig_pct!=null&&r.bonds_pct!=null)bi=(r.below_ig_pct/100)*(r.bonds_pct/100)*inv;
+    const com=r.common_stock_pct!=null?(r.common_stock_pct/100)*inv:0; hrl=Math.round(100*(bi+com)/cs*10)/10;}
+  r.higher_risk_leverage_partial=hrl;
+  const roe=_list(s.roe); r.roe_series=s.roe||{}; r.roe_5yr_mean=roe.length?Math.round(_mean(roe)*100)/100:null;
+  r.roe_trend=_slope(roe); r.roe_latest=_latest(s.roe);
+  const br=_latest(s.benefit_ratio),er=_latest(s.expense_ratio),cr=_latest(s.commission_ratio);
+  r.benefit_ratio_latest=br; r.expense_ratio_latest=er;
+  r.ah_combined_ratio=[br,er,cr].some(x=>x!=null)?Math.round([br,er,cr].reduce((a,x)=>a+(x||0),0)*10)/10:_latest(s.combined_ratio_direct);
+  r.total_premium_usd=_latest(s.total_premium);
+  const seg={ah:_latest(s.seg_ah),il:_latest(s.seg_individual_life),gl:_latest(s.seg_group_life),
+    ia:_latest(s.seg_individual_annuity),ga:_latest(s.seg_group_annuity)};
+  const vals=Object.values(seg).filter(v=>v!=null&&v>0);
+  r.hhi_segments=vals.length?Math.round(vals.reduce((a,v)=>a+(v/100)**2,0)*1000)/1000:null;
+  r.material_segment_count=vals.filter(v=>v>=10).length||1;
+  return r;
 }
+function matchRef(name){const nn=jnorm(name);let best=null;
+  for(const ref of (window.CARRIER_REF||[])) for(const key of["lead_entity","rating_unit_name"]){
+    const rv=jnorm(ref[key]); if(!rv)continue;
+    if(rv===nn||nn.includes(rv)||rv.includes(nn)){const sc=(rv===nn?100:0)+Math.min(rv.length,nn.length);
+      if(!best||sc>best[0])best=[sc,ref];}}
+  return best?best[1]:null;}
+
+const WELLABE_RE=/wellabe|medico|american republic|great western/i;
+function recordFromPull(pull){
+  const ref=matchRef(pull.name)||{};
+  const rec=deriveRecord(pull);
+  rec.rating_unit_name=ref.rating_unit_name||pull.name; rec.lead_entity=ref.lead_entity||pull.name;
+  rec.stratum=ref.stratum||""; rec.ownership=ref.ownership||""; rec.source_file=pull.sourceFile;
+  ["fsr","icr","outlook","bs_assessment","op_assessment","bp_assessment","erm_assessment","rating_basis","source_url"]
+    .forEach(k=>rec[k]=ref[k]||(k==="rating_basis"?"standalone":null));
+  rec.is_wellabe=WELLABE_RE.test(rec.rating_unit_name)||WELLABE_RE.test(pull.name);
+  rec.notching=rec.bs_assessment?notchPredict(rec.bs_assessment,rec.op_assessment,rec.bp_assessment,rec.erm_assessment,rec.icr):null;
+  rec._matched=!!ref.rating_unit_name; rec._unmatchedRows=pull.unmatched.length;
+  return rec;
+}
+
+let LOADED=[];
+async function handleFiles(files){
+  const log=document.getElementById("loadLog"); const recs=LOADED.slice();
+  for(const f of files){
+    try{
+      const buf=await f.arrayBuffer();
+      const wb=XLSX.read(buf,{type:"array",cellDates:true});
+      let ws=wb.Sheets[wb.SheetNames[0]];
+      for(const nm of wb.SheetNames){const a=XLSX.utils.sheet_to_json(wb.Sheets[nm],{header:1,raw:true});
+        const sig=a.slice(0,12).flat().map(jnorm).join(""); if(sig.includes("periodended")||sig.includes("financialhighlights")){ws=wb.Sheets[nm];break;}}
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,cellDates:true});
+      const pull=parseHighlights(aoa); pull.sourceFile=f.name;
+      const rec=recordFromPull(pull);
+      // de-dupe by rating_unit_name
+      const i=recs.findIndex(x=>x.rating_unit_name===rec.rating_unit_name); if(i>=0)recs[i]=rec; else recs.push(rec);
+    }catch(e){ appendLog(`<span style="color:#B5402E">✗ ${f.name}: ${e.message}</span>`); }
+  }
+  LOADED=recs; setLoaded(LOADED); viewInput();
+}
+function appendLog(html){const l=document.getElementById("loadLog");l.innerHTML+=html+"<br>";}
+function setLoaded(recs){
+  if(recs.length){ CARRIERS=recs; IS_LIVE=true; buildFilters();
+    const lbl=recs.filter(c=>c.bs_assessment).length;
+    const b=document.getElementById("dataBadge"); b.className="badge live";
+    b.textContent="loaded "+recs.length+" pull"+(recs.length>1?"s":"")+" · "+lbl+" rated"; }
+}
+function viewInput(){
+  const stat=document.getElementById("loadStat"), log=document.getElementById("loadLog");
+  if(!LOADED.length){ stat.innerHTML="No pulls loaded yet — the charts are empty until you add data."; log.innerHTML=""; return; }
+  const rated=LOADED.filter(c=>c.bs_assessment).length, rbc=LOADED.filter(c=>c.rbc_cal_pct!=null).length;
+  stat.innerHTML=`<b>${LOADED.length}</b> pull(s) loaded · ${rbc} with RBC · ${rated} matched to an AM Best rating.`;
+  log.innerHTML=LOADED.map(c=>{
+    const ok=c._matched?'<span style="color:#2E7D5B">✓</span>':'<span style="color:#E0A458">? no roster match</span>';
+    // only warn when a CORE field failed to parse (likely a different export template)
+    const warn=(c.rbc_cal_pct==null||c.capital_surplus_usd==null)
+      ?` · <span style="color:#B5402E">check format — core fields missing</span>`:"";
+    return `${ok} <b>${c.rating_unit_name}</b> — RBC ${c.rbc_cal_pct!=null?c.rbc_cal_pct+"%":"—"}, `+
+           `ROE5y ${c.roe_5yr_mean!=null?c.roe_5yr_mean+"%":"—"}, ${c.bs_assessment||"unrated"}${warn}`;
+  }).join("<br>");
+}
+function initInput(){
+  const drop=document.getElementById("drop"), fi=document.getElementById("fileInput");
+  drop.onclick=()=>fi.click();
+  fi.onchange=()=>{ if(fi.files.length){document.getElementById("loadLog").innerHTML="";handleFiles([...fi.files]);} };
+  ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.background="#E6EEF6";}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.background="#F3F6FA";}));
+  drop.addEventListener("drop",e=>{const fs=[...(e.dataTransfer.files||[])].filter(f=>/\.xlsx$/i.test(f.name));
+    if(fs.length){document.getElementById("loadLog").innerHTML="";handleFiles(fs);}});
+  document.getElementById("clearData").onclick=()=>{LOADED=[];CARRIERS=[];IS_LIVE=false;buildFilters();
+    const b=document.getElementById("dataBadge");b.className="badge demo";b.textContent="no data — load in ＋ Data";viewInput();render();};
+  document.getElementById("goCharts").onclick=()=>{document.querySelector('#tabs button[data-view="bs"]').click();};
+}
+
+/* (demo data removed — tool shows only real pulls loaded via ./data.json or the +Data tab) */
 function notchPredict(bs,op,bp,erm,icr){
   const BASE={"Strongest":"a","Very Strong":"a-","Strong":"bbb+","Adequate":"bbb","Weak":"bb","Very Weak":"b-"};
   const OP={"Very Strong":2,"Strong":1,"Adequate":0,"Marginal":-1,"Weak":-2,"Very Weak":-3};
   const BP={"Very Favorable":2,"Favorable":1,"Neutral":0,"Limited":-1,"Very Limited":-2};
   const ERM={"Very Strong":1,"Appropriate":0,"Marginal":-1,"Weak":-3,"Very Weak":-4};
-  // range bands
-  const BBAND={"Strongest":["a+","a"],"Very Strong":["a","a-"],"Strong":["a-","bbb+"],"Adequate":["bbb+","bbb-"],"Weak":["bb+","bb-"],"Very Weak":["b+","b-"]};
-  const OPB={"Very Strong":[1,2],"Strong":[1,2],"Adequate":[0,0],"Marginal":[-2,-1],"Weak":[-3,-2],"Very Weak":[-3,-3]};
-  const BPB={"Very Favorable":[2,2],"Favorable":[1,1],"Neutral":[0,0],"Limited":[-1,-1],"Very Limited":[-2,-2]};
-  const ERMB={"Very Strong":[1,1],"Appropriate":[0,0],"Marginal":[-2,-1],"Weak":[-4,-3],"Very Weak":[-4,-4]};
   const base=BASE[bs]; if(!base)return null;
   const clamp=i=>Math.max(0,Math.min(ICR_SCALE.length-1,i));
   const tot=(OP[op]||0)+(BP[bp]||0)+(ERM[erm]||0);
-  const point=ICR_SCALE[clamp(ICR_SCALE.indexOf(base)-tot)];
-  const band=BBAND[bs]; const op_b=OPB[op]||[0,0],bp_b=BPB[bp]||[0,0],erm_b=ERMB[erm]||[0,0];
-  const maxUp=op_b[1]+bp_b[1]+erm_b[1], minUp=op_b[0]+bp_b[0]+erm_b[0];
-  const si=clamp(ICR_SCALE.indexOf(band[0])-maxUp), wi=clamp(ICR_SCALE.indexOf(band[1])-minUp);
-  const lo=Math.min(si,wi), hi=Math.max(si,wi);
+  const pIdx=clamp(ICR_SCALE.indexOf(base)-tot);
+  const lo=clamp(pIdx-BAND_TOL), hi=clamp(pIdx+BAND_TOL);   // tight +/-1 notch band
   const ai=ICR_SCALE.indexOf((icr||"").trim());
   const inRange = ai>=0 ? (ai>=lo&&ai<=hi) : null;
-  return {predicted_icr:point, predicted_strong:ICR_SCALE[lo], predicted_weak:ICR_SCALE[hi],
+  return {predicted_icr:ICR_SCALE[pIdx], predicted_strong:ICR_SCALE[lo], predicted_weak:ICR_SCALE[hi],
           strong_idx:lo, weak_idx:hi, in_range:inRange, notches:{total:tot}};
 }
 </script>

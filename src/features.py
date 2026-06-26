@@ -129,9 +129,10 @@ def build_record(pull: RawPull, roster: dict | None = None) -> dict:
     rec["benefit_ratio_latest"] = br
     rec["expense_ratio_latest"] = er
     rec["commission_ratio_latest"] = cr
-    rec["ah_combined_ratio"] = round(sum(x for x in (br, er, cr) if x is not None), 1) if any(
-        x is not None for x in (br, er, cr)
-    ) else None
+    if any(x is not None for x in (br, er, cr)):
+        rec["ah_combined_ratio"] = round(sum(x for x in (br, er, cr) if x is not None), 1)
+    else:  # health/P&C template gives a direct combined ratio instead of the three components
+        rec["ah_combined_ratio"] = _latest(s.get("combined_ratio_direct"))
     cr_series = _series_list(s.get("benefit_ratio"))
     rec["ah_cr_trend"] = round(_ols_slope(cr_series), 3) if _ols_slope(cr_series) is not None else None
 

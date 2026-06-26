@@ -36,7 +36,8 @@ def normalize(label) -> str:
 # build report flags a drifted label for some carrier.
 ALIASES: dict[str, list[str]] = {
     # --- balance sheet, $000 (latest-year scalar) ---
-    "total_invested_assets_usd": ["Total Cash and Investments"],
+    # Life/Fraternal uses "and"; Health uses "&". P&C shares the Life labels.
+    "total_invested_assets_usd": ["Total Cash and Investments", "Total Cash & Investments"],
     "total_assets_usd": ["Total Assets"],
     "affiliated_investments_usd": ["Affiliated Investments (incl above)"],
     "total_reserves_usd": ["Total Policy Reserves"],
@@ -46,7 +47,10 @@ ALIASES: dict[str, list[str]] = {
     # --- RBC, $000 + ratio ---
     "tac_usd": ["RBC - Total Adjusted Capital", "Total Adjusted Capital"],
     "acl_rbc_usd": ["ACL Risk Based Capital", "Authorized Control Level Risk Based Capital"],
-    "rbc_acl_ratio": ["Risk Based Capital Ratio(TAC/ACL RBC)", "Risk Based Capital Ratio"],
+    "rbc_acl_ratio": ["Risk Based Capital Ratio(TAC/ACL RBC)",
+                      "Risk Based Capital Ratio (TAC/ACL RBC) (%)", "Risk Based Capital Ratio"],
+    # health template combined ratio (used when life benefit/expense/commission rows are absent)
+    "combined_ratio_direct": ["Combined Ratio"],
     # --- asset quality / mix (%, latest-year) ---
     "bonds_pct": ["Unaff. Bonds / Unaff. Investments"],
     "common_stock_pct": ["Unaff. Common Stocks / Unaff. Investments"],

@@ -102,6 +102,9 @@ def main() -> int:
             rec["notching"] = None
             rec["icr_residual_notches"] = None
 
+        # de-dupe: same rating unit pulled twice (identical files) -> keep first
+        if any(x["rating_unit_name"] == rec["rating_unit_name"] for x in records):
+            continue
         records.append(rec)
         miss_rows.append({
             "carrier": rec["rating_unit_name"],

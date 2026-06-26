@@ -12,10 +12,10 @@ predicts an ICR *interval* for each carrier (knowing the four labels pins the ra
 a single value, because the baseline alone spans two notches and the OP/ERM notches are themselves
 ranges). Of **52** rated carriers:
 
-- **43 (83%) fall inside the predicted interval** — the model
-  reproduces them from the four labels alone (median band width 3 notches; the band is the
-  honest object here — knowing the labels brackets the rating, it doesn't pin it to one value).
-- **9 are group-aligned** — subsidiaries rated at their *group's* ICR rather than on
+- **45 (87%) fall inside the predicted band** — a tight
+  **±1-notch** window around the point estimate, so an in-range hit means the
+  rating is within one notch of the reconstruction, not caught by a wide net.
+- **7 are group-aligned** — subsidiaries rated at their *group's* ICR rather than on
   their standalone blocks. The rating sits above the standalone band where the parent lends a halo
   (USAA Life +4 to aaa; Combined/Chubb +3; Lumico/RGA +3; the Cigna/HCSC and American-Amicable/IA
   units +2) and *below* it where the group rating caps a strong subsidiary (the two Aetna/CVS units,
