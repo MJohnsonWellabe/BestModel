@@ -61,7 +61,7 @@ def match_roster(name: str, entity_key: str | None, roster: list[dict]) -> dict 
     nn = match_norm(name)
     ALIAS = {  # filing entity (filler-stripped) -> roster rating_unit_name
         "americanrepublic": "Wellabe Group",          # Wellabe files via American Republic
-        "americanamicabletexas": "American-Amicable / Trinity",
+        "americanamicable": "American-Amicable / Trinity",
         "healthspring": "Cigna — National Health",     # Cigna sub renamed HealthSpring
     }
     for frag, unit in ALIAS.items():
