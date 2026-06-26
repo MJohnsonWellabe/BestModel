@@ -1,0 +1,18 @@
+block,assessment,n_carriers
+Balance sheet,Strongest,12
+Balance sheet,Very Strong,24
+Balance sheet,Strong,11
+Balance sheet,Adequate,5
+Balance sheet,Weak,0
+Balance sheet,Very Weak,0
+Operating,Very Strong,2
+Operating,Strong,22
+Operating,Adequate,20
+Operating,Marginal,8
+Operating,Weak,0
+Operating,Very Weak,0
+Business profile,Very Favorable,4
+Business profile,Favorable,14
+Business profile,Neutral,25
+Business profile,Limited,8
+Business profile,Very Limited,1

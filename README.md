@@ -24,17 +24,25 @@ as the inputs. Feeds the Office of the Chief Actuary's AM Best white paper.
 ## Quickstart
 
 ```bash
-pip install -r requirements.txt          # pandas, numpy, openpyxl (scipy optional)
+pip install -r requirements.txt          # openpyxl required; pandas/numpy/scipy optional
 python src/make_seeds.py                  # regenerate seed CSVs from the template (if it changed)
+python src/seed_assessments.py            # (re)write data/assessments.csv — the AM Best labels (Y)
 
 # 1. Drop each carrier's raw S&P "Life/Fraternal Financial Highlights" export into data/raw/
-# 2. Confirm the assessment labels (Y) in data/assessments.csv (FSR/ICR/3 blocks + source_url)
-python src/build.py                       # parse + derive + validate → tool/data.json
-#    prints a missingness report so you can see coverage before analysing
+python src/build.py                       # parse + derive + join labels + notch → tool/data.json
+#    prints a missingness report (data/processed/missingness.csv) so you see coverage first
 
-# 3. Open the tool (any static server; no build step)
+# 2. Open the tool (any static server; no build step). Ships with embedded demo data and
+#    switches to the live data.json automatically once it carries enough rated carriers.
 python -m http.server -d tool 8080        # → http://localhost:8080
+
+# 3. White-paper export pack (notching reconstruction is real now; financial figures
+#    export from the tool once data.json is populated):
+python src/whitepaper.py                  # → output/whitepaper/{findings.md, tables/*}
 ```
+
+> `tool/data.json` and `data/processed/missingness.csv` are **build artifacts** (gitignored —
+> derived from licensed S&P data). Run `python src/build.py` to regenerate them locally.
 
 ## The data workflow (how to feed it)
 
