@@ -66,7 +66,7 @@
   .legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin:8px 2px 0;font-size:11.5px;color:var(--muted)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .legend i{width:11px;height:11px;border-radius:50%;display:inline-block}
-  .wmark{font-size:11.5px;color:var(--wellabe);font-weight:600}
+  .wmark{font-size:11.5px;color:var(--ink);font-weight:600}
   .approx{font-size:11px;color:var(--muted);font-style:italic;margin-top:4px}
 </style>
 </head>
@@ -93,6 +93,10 @@
     </div>
     <div id="chart" class="chart"></div>
     <div id="legend" class="legend"></div>
+    <div id="chart2wrap" style="display:none;margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+      <div style="font-size:13px;font-weight:600;color:var(--muted)">Group-aligned carriers — rated at the parent/group level (shown separately)</div>
+      <div id="chart2" style="width:100%"></div>
+    </div>
   </div>
   <div id="findingCard" class="card">
     <div id="finding" class="finding"></div>
@@ -144,6 +148,7 @@
   <h3>Filters</h3>
   <div class="grp"><div class="lbl">Stratum</div><div class="chips" id="f-stratum"></div></div>
   <div class="grp"><div class="lbl">Ownership</div><div class="chips" id="f-ownership"></div></div>
+  <div class="toggle"><div>Hide group-supported subsidiaries</div><div class="switch" id="f-group"><i></i></div></div>
   <div class="toggle"><div>Hide fortress anchors (A++ mutuals)</div><div class="switch" id="f-anchors"><i></i></div></div>
   <div class="toggle"><div>Show only carriers with assessment labels</div><div class="switch" id="f-labeled"><i></i></div></div>
   <div style="margin-top:14px;display:flex;gap:8px">
@@ -174,7 +179,7 @@ const toFsr=icr=>ICR_TO_FSR[(icr||"").trim().toLowerCase()]||null;
 const fsrIdx=f=>FSR_SCALE.indexOf((f||"").trim());
 
 let CARRIERS=[], LOADED=[], IS_LIVE=false, VIEW="bs";   // real data only — loaded via ./data.json or the +Data tab
-const FILT={stratum:new Set(),ownership:new Set(),anchors:false,labeled:false};
+const FILT={stratum:new Set(),ownership:new Set(),anchors:false,labeled:false,group:false};
 
 /* ============================ data loading ============================ */
 /* boot() runs at the very end of the script (see final line) so every const helper
@@ -184,7 +189,7 @@ const WEL_ERM=["Very Strong","Appropriate","Marginal","Weak","Very Weak"];
 const WEL_CUR={bs:"Strongest",op:"Adequate",bp:"Neutral",erm:"Appropriate"};
 let WEL={...WEL_CUR};
 function welComputeAll(w){
-  const BASE={Strongest:"a","Very Strong":"a-",Strong:"bbb+",Adequate:"bbb",Weak:"bb","Very Weak":"b-"};
+  const BASE={Strongest:"a","Very Strong":"a-",Strong:"a-",Adequate:"bbb",Weak:"bb","Very Weak":"b-"};
   const OP={"Very Strong":2,Strong:1,Adequate:0,Marginal:-1,Weak:-2,"Very Weak":-3};
   const BP={"Very Favorable":2,Favorable:1,Neutral:0,Limited:-1,"Very Limited":-2};
   const ERM={"Very Strong":1,Appropriate:0,Marginal:-1,Weak:-3,"Very Weak":-4};
@@ -246,6 +251,7 @@ const pct=v=>v==null?"—":v+"%";
 function active(){
   return CARRIERS.filter(c=>{
     if(FILT.anchors && /anchor/.test(c.stratum||"")) return false;
+    if(FILT.group && (c.rating_basis||"")==="group-member") return false;
     if(FILT.labeled && !c.bs_assessment) return false;
     if(FILT.stratum.size){ const tags=(c.stratum||"").split(/[;,]/).map(s=>s.trim());
       if(!tags.some(t=>FILT.stratum.has(t))) return false; }
@@ -274,12 +280,13 @@ document.getElementById("filterBtn").onclick=openSheet;
 sheetBg.onclick=closeSheet;
 document.getElementById("f-apply").onclick=closeSheet;
 function toggle(id,key){const el=document.getElementById(id);el.onclick=()=>{el.classList.toggle("on");FILT[key]=el.classList.contains("on");render();};}
-toggle("f-anchors","anchors"); toggle("f-labeled","labeled");
+toggle("f-anchors","anchors"); toggle("f-labeled","labeled"); toggle("f-group","group");
 document.getElementById("f-reset").onclick=()=>{
   FILT.stratum.clear();FILT.ownership.clear();FILT.anchors=false;FILT.labeled=false;
   document.querySelectorAll(".chip.on").forEach(c=>{if(c.id!=="f-apply")c.classList.remove("on")});
   document.getElementById("f-anchors").classList.remove("on");
   document.getElementById("f-labeled").classList.remove("on");
+  document.getElementById("f-group").classList.remove("on");
   render();
 };
 
@@ -293,6 +300,7 @@ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
 function render(){
   document.querySelectorAll(".approx").forEach(e=>e.remove()); // clear per-view footnotes
   document.getElementById("chart").style.height="";            // reset (notch sets its own)
+  if(VIEW!=="notch") document.getElementById("chart2wrap").style.display="none";
   const isInput=VIEW==="input", isWel=VIEW==="wellabe", isChart=!isInput&&!isWel;
   document.getElementById("inputPanel").style.display=isInput?"block":"none";
   document.getElementById("wellabePanel").style.display=isWel?"block":"none";
@@ -420,15 +428,18 @@ const VIEWCFG={
       prim:{k:"total_assets_usd",label:"Total assets ($B, log)",log:true,scale:1e6},
       sec:{k:"hhi_segments",label:"Concentration — segment HHI (1 = single line)"}}
 };
-function regionShapes(d2,cfg){ // BP only: vertical scale bands for where each tier is expected
-  const a=t=>median(d2.filter(c=>c.bp_assessment===t).map(c=>c[cfg.prim.k]/cfg.prim.scale));
-  const fav=a("Favorable"),neu=a("Neutral"),lim=a("Limited");
-  if(fav==null||neu==null) return [];
-  const gm=(x,y)=>Math.sqrt(x*y), b1=gm(fav,neu), b2=lim!=null?gm(neu,lim):neu/3;
-  const xs=d2.map(c=>c[cfg.prim.k]/cfg.prim.scale).filter(v=>v>0);
-  const lo=Math.min(...xs)*0.6, hi=Math.max(...xs)*1.6;
-  const band=(x0,x1,col)=>({type:"rect",xref:"x",yref:"paper",x0,x1,y0:0,y1:1,fillcolor:col,opacity:.07,line:{width:0},layer:"below"});
-  return [band(lo,b2,"#F2A93B"),band(b2,b1,"#9AA0A6"),band(b1,hi,"#0F5C8C")];
+function quart(xs,q){xs=xs.filter(v=>v!=null).sort((a,b)=>a-b);if(!xs.length)return null;
+  const i=(xs.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return xs[lo]+(xs[hi]-xs[lo])*(i-lo);}
+// 2D "expected tier" zones — the middle-50% box of each tier in BOTH predictors (cuts both ways)
+function region2D(d2,cfg){const sc=cfg.prim.scale||1,out=[];
+  cfg.tiers.forEach(t=>{const g=d2.filter(c=>c[cfg.assess]===t && c[cfg.sec.k]!=null);
+    if(g.length<3)return;
+    const x0=quart(g.map(c=>c[cfg.prim.k]/sc),.25),x1=quart(g.map(c=>c[cfg.prim.k]/sc),.75);
+    const y0=quart(g.map(c=>c[cfg.sec.k]),.25),y1=quart(g.map(c=>c[cfg.sec.k]),.75);
+    if([x0,x1,y0,y1].some(v=>v==null))return;
+    out.push({type:"rect",xref:"x",yref:"y",x0,x1,y0,y1,fillcolor:cfg.colors[t],opacity:.13,
+      line:{width:1,color:cfg.colors[t]},layer:"below"});});
+  return out;
 }
 function renderBlock(key){
   const cfg=VIEWCFG[key], sc=cfg.prim.scale||1, px=c=>c[cfg.prim.k]/sc;
@@ -442,7 +453,7 @@ function renderBlock(key){
         boxpoints:"all",jitter:.6,pointpos:0,orientation:"h",name:t,marker:{size:9,color:cfg.colors[t]},
         line:{color:cfg.colors[t]},fillcolor:"rgba(0,0,0,0)",hovertemplate:"%{text}<br>%{x}<extra></extra>"};});
     if(w)traces.push({x:[px(w)],y:[w[cfg.assess]],customdata:[w],text:[w.rating_unit_name],type:"scatter",mode:"markers",
-      marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},hovertemplate:"%{text} (Wellabe)<extra></extra>"});
+      marker:{size:20,color:cfg.colors[w[cfg.assess]]||"#C0392B",symbol:"diamond",line:{width:2.5,color:"#0B1C2C"}},hovertemplate:"%{text} (Wellabe)<extra></extra>"});
     Plotly.newPlot("chart",traces,LAYOUT({
       xaxis:{title:cfg.prim.label,type:cfg.prim.log?"log":"linear",gridcolor:"#ECE8DD"},
       yaxis:{categoryorder:"array",categoryarray:tiers.slice().reverse(),automargin:true,gridcolor:"#F0EDE4"}
@@ -453,11 +464,11 @@ function renderBlock(key){
       return {x:g.map(px),y:g.map(c=>c[cfg.sec.k]),customdata:g,text:g.map(c=>c.rating_unit_name),type:"scatter",
         mode:"markers",name:t,marker:{size:11,color:cfg.colors[t],line:{width:.5,color:"#fff"}},hovertemplate:"%{text}<extra></extra>"};});
     if(w&&w[cfg.sec.k]!=null)traces.push({x:[px(w)],y:[w[cfg.sec.k]],customdata:[w],text:[w.rating_unit_name],type:"scatter",mode:"markers",
-      marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},hovertemplate:"%{text} (Wellabe)<extra></extra>"});
+      marker:{size:20,color:cfg.colors[w[cfg.assess]]||"#C0392B",symbol:"diamond",line:{width:2.5,color:"#0B1C2C"}},hovertemplate:"%{text} (Wellabe)<extra></extra>"});
     Plotly.newPlot("chart",traces,Object.assign(LAYOUT({
       xaxis:{title:cfg.prim.label,type:cfg.prim.log?"log":"linear",gridcolor:"#ECE8DD"},
       yaxis:{title:cfg.sec.label,gridcolor:"#ECE8DD"}
-    }),{shapes:cfg.regions?regionShapes(d2,cfg):[]}),CFG).then(bindTap);
+    }),{shapes:region2D(d2,cfg)}),CFG).then(bindTap);
   }
   legend(cfg.colors,cfg.tiers);
   cfg.topFinding(data);
@@ -471,61 +482,61 @@ function viewBP(){renderBlock("bp");}
 
 /* ============================ VIEW 4 — Notching ============================ */
 function viewNotch(){
-  // Work in FSR (the actual letter rating A++…D), converting the model's ICR band to FSR.
   const data=active().filter(c=>c.notching&&c.notching.predicted_icr&&(c.fsr||c.icr));
   const pts=data.map(c=>{
-    const nn=c.notching;
-    const pIdx=fsrIdx(toFsr(nn.predicted_icr));
+    const nn=c.notching, pIdx=fsrIdx(toFsr(nn.predicted_icr));
     let si=fsrIdx(toFsr(nn.predicted_strong)), wi=fsrIdx(toFsr(nn.predicted_weak));
-    if(si>wi){const t=si;si=wi;wi=t;}                         // strong end = lower FSR index
-    if(wi-si>1){ if((pIdx-si)>=(wi-pIdx)) si=wi-1; else wi=si+1; }  // cap band to 1 FSR notch
-    const ay=fsrIdx(c.fsr)>=0?fsrIdx(c.fsr):fsrIdx(toFsr(c.icr)); // actual letter rating
-    const inR=(ay>=si&&ay<=wi);
+    if(si>wi){const t=si;si=wi;wi=t;}
+    if(wi-si>1){ if((pIdx-si)>=(wi-pIdx)) si=wi-1; else wi=si+1; }
+    const ay=fsrIdx(c.fsr)>=0?fsrIdx(c.fsr):fsrIdx(toFsr(c.icr));
     const basis=(c.rating_basis||"standalone");
-    return {c, pIdx, si, wi, ay, basis, verdict: inR?"in":(basis==="group-member"?"group":"resid")};
+    return {c,pIdx,si,wi,ay,basis,verdict:(ay>=si&&ay<=wi)?"in":(basis==="group-member"?"group":"resid")};
   }).filter(p=>p.pIdx>=0 && p.ay>=0);
-  pts.sort((a,b)=> b.ay-a.ay || (a.c.rating_unit_name<b.c.rating_unit_name?-1:1)); // by actual rating
-  const names=pts.map(p=>p.c.rating_unit_name);
-  const COL={in:"#2E5A88",group:"#E0A458",resid:"#B5402E"};
-  // predicted band as a horizontal whisker (error bar spanning the FSR band)
-  const bandTrace={x:pts.map(p=>(p.si+p.wi)/2),y:names,customdata:pts.map(p=>p.c),type:"scatter",mode:"markers",
-    marker:{size:1,color:"rgba(0,0,0,0)"},
-    error_x:{type:"data",symmetric:false,
-      array:pts.map(p=>p.wi-(p.si+p.wi)/2),arrayminus:pts.map(p=>(p.si+p.wi)/2-p.si),
-      color:"#9AA7B2",thickness:7,width:3},
-    hovertemplate:"%{y}<br>predicted rating band<extra></extra>",showlegend:false};
-  const mk=(key)=>{const a=pts.filter(p=>p.verdict===key);
-    return {x:a.map(p=>p.ay),y:a.map(p=>p.c.rating_unit_name),customdata:a.map(p=>p.c),
-      type:"scatter",mode:"markers",marker:{size:11,color:COL[key],line:{width:.5,color:"#fff"}},
-      hovertemplate:"%{y}<br>actual FSR %{x}<extra></extra>",showlegend:false};};
-  const traces=[bandTrace,mk("in"),mk("group"),mk("resid")];
-  const w=pts.find(p=>p.c.is_wellabe);
-  if(w)traces.push({x:[w.ay],y:[w.c.rating_unit_name],customdata:[w.c],type:"scatter",mode:"markers",
-    marker:{size:16,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
-    hovertemplate:"%{y} (Wellabe)<extra></extra>",showlegend:false});
-  const span=[Math.max(0,Math.min(...pts.map(p=>Math.min(p.si,p.ay)))-1),
-              Math.min(FSR_SCALE.length-1,Math.max(...pts.map(p=>Math.max(p.wi,p.ay)))+1)];
-  const H=Math.max(360, pts.length*22+60);
-  document.getElementById("chart").style.height=H+"px";
-  Plotly.newPlot("chart",traces,Object.assign(LAYOUT({
-    xaxis:{tickvals:FSR_SCALE.map((_,i)=>i),ticktext:FSR_SCALE,side:"top",gridcolor:"#ECE8DD",range:span},
-    yaxis:{automargin:true,tickfont:{size:9},gridcolor:"#F0EDE4"}
-  }),{margin:{l:8,r:12,t:34,b:10}}),CFG).then(bindTap);
+  const byAct=(a,b)=> b.ay-a.ay || (a.c.rating_unit_name<b.c.rating_unit_name?-1:1);
+  const mainPts=pts.filter(p=>p.verdict!=="group").sort(byAct);
+  const grpPts =pts.filter(p=>p.verdict==="group").sort(byAct);
+  drawForest("chart",mainPts);
+  const wrap=document.getElementById("chart2wrap");
+  if(grpPts.length){ wrap.style.display="block"; drawForest("chart2",grpPts); } else wrap.style.display="none";
   document.getElementById("legend").innerHTML=
     `<span><i style="background:#9AA7B2"></i>predicted rating band</span>`+
     `<span><i style="background:#2E5A88"></i>actual in band</span>`+
-    `<span><i style="background:#E0A458"></i>group-aligned</span>`+
-    `<span><i style="background:#B5402E"></i>residual</span><span class="wmark">◆ Wellabe</span>`;
-  const nIn=pts.filter(p=>p.verdict==="in").length, nG=pts.filter(p=>p.verdict==="group").length,
-        nR=pts.filter(p=>p.verdict==="resid").length;
+    `<span><i style="background:#B5402E"></i>residual</span>`+
+    `<span><i style="background:#E0A458"></i>group-aligned (below)</span><span class="wmark">◆ Wellabe</span>`;
+  const nIn=mainPts.filter(p=>p.verdict==="in").length, nR=mainPts.filter(p=>p.verdict==="resid").length;
   const sa=pts.filter(p=>p.basis==="standalone"), saIn=sa.filter(p=>p.verdict==="in").length;
   document.getElementById("finding").innerHTML=
-    `Each grey bar is the reconstruction's predicted <b>FSR</b> band; the dot is the carrier's actual `+
-    `rating. <b>${nIn}/${pts.length}</b> land in band. Of carriers rated standalone, <b>${saIn}/${sa.length}</b> `+
-    `fall in band; the <b>${nG}</b> amber points are <b>group-aligned</b> (rated at the parent/group level), `+
-    `and ${nR} red are genuine residuals — the committee-judgment cases.`;
-  document.getElementById("ncount").textContent="n = "+pts.length+" carriers (predicted band vs actual FSR)";
-  if(w)showDetail(w.c);
+    `Each grey bar is the reconstruction's predicted <b>FSR</b> band; the dot is the actual rating. Among carriers `+
+    `rated on their own merits, <b>${saIn}/${sa.length}</b> land in band (${nR} residual${nR===1?"":"s"} — the committee-`+
+    `judgment cases). The <b>${grpPts.length}</b> <b>group-aligned</b> carriers are shown separately below — their rating `+
+    `reflects the parent/group, not the standalone blocks.`;
+  document.getElementById("ncount").textContent="n = "+pts.length+" carriers · "+mainPts.length+" standalone, "+grpPts.length+" group-aligned";
+  const w=pts.find(p=>p.c.is_wellabe); if(w)showDetail(w.c);
+}
+function drawForest(div,pts){
+  const el=document.getElementById(div);
+  if(!pts.length){ try{Plotly.purge(div);}catch(e){} el.innerHTML=""; return; }
+  const COL={in:"#2E5A88",group:"#E0A458",resid:"#B5402E"};
+  const names=pts.map(p=>p.c.rating_unit_name);
+  const band={x:pts.map(p=>(p.si+p.wi)/2),y:names,customdata:pts.map(p=>p.c),type:"scatter",mode:"markers",
+    marker:{size:1,color:"rgba(0,0,0,0)"},error_x:{type:"data",symmetric:false,
+    array:pts.map(p=>p.wi-(p.si+p.wi)/2),arrayminus:pts.map(p=>(p.si+p.wi)/2-p.si),color:"#9AA7B2",thickness:7,width:3},
+    hovertemplate:"%{y}<br>predicted band<extra></extra>",showlegend:false};
+  const mk=key=>{const a=pts.filter(p=>p.verdict===key);
+    return {x:a.map(p=>p.ay),y:a.map(p=>p.c.rating_unit_name),customdata:a.map(p=>p.c),type:"scatter",mode:"markers",
+      marker:{size:11,color:COL[key],line:{width:.5,color:"#fff"}},hovertemplate:"%{y}<br>actual FSR %{x}<extra></extra>",showlegend:false};};
+  const traces=[band,mk("in"),mk("group"),mk("resid")];
+  const w=pts.find(p=>p.c.is_wellabe);
+  if(w)traces.push({x:[w.ay],y:[w.c.rating_unit_name],customdata:[w.c],type:"scatter",mode:"markers",
+    marker:{size:16,color:COL[w.verdict]||"#2E5A88",symbol:"diamond",line:{width:2.5,color:"#0B1C2C"}},
+    hovertemplate:"%{y} (Wellabe)<extra></extra>",showlegend:false});
+  const span=[Math.max(0,Math.min(...pts.map(p=>Math.min(p.si,p.ay)))-1),
+              Math.min(FSR_SCALE.length-1,Math.max(...pts.map(p=>Math.max(p.wi,p.ay)))+1)];
+  el.style.height=Math.max(170,pts.length*22+50)+"px";
+  Plotly.newPlot(div,traces,Object.assign(LAYOUT({
+    xaxis:{tickvals:FSR_SCALE.map((_,i)=>i),ticktext:FSR_SCALE,side:"top",gridcolor:"#ECE8DD",range:span},
+    yaxis:{automargin:true,tickfont:{size:9},gridcolor:"#F0EDE4"}
+  }),{margin:{l:8,r:12,t:34,b:10}}),CFG).then(bindTap);
 }
 
 /* ============================ export ============================ */

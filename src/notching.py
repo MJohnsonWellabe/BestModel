@@ -27,7 +27,7 @@ ICR_INDEX = {v: i for i, v in enumerate(ICR_SCALE)}
 BASELINE_ICR = {
     "Strongest": "a",      # range a+ / a
     "Very Strong": "a-",   # range a  / a-
-    "Strong": "bbb+",      # range a- / bbb+
+    "Strong": "a-",        # range a- / bbb+ — empirical median (standalone) is a-, not the low end
     "Adequate": "bbb",     # range bbb+ / bbb / bbb-
     "Weak": "bb",          # range bb+ / bb / bb-
     "Very Weak": "b-",     # below the table
@@ -131,9 +131,10 @@ def _selftest():
     r = predict("Strongest", "Adequate", "Neutral", "Appropriate")
     assert r["predicted_icr"] == "a", r
     assert r["predicted_fsr"] == "A", r
-    # A downgrade pressure example: Strong BS, Marginal OP -> below baseline
+    # Strong BS, all no-change -> a- -> A- (matches e.g. Atlantic American at 212% RBC)
+    assert predict("Strong", "Adequate", "Neutral", "Appropriate")["predicted_fsr"] == "A-"
     r2 = predict("Strong", "Marginal", "Neutral", "Appropriate")
-    assert r2["baseline_icr"] == "bbb+" and r2["notches"]["total"] == -1, r2
+    assert r2["baseline_icr"] == "a-" and r2["notches"]["total"] == -1, r2
     # Range model: Physicians Mutual (Strongest/Strong/Neutral/Appropriate) actual aa- should be
     # in-range once we allow the high-Strongest baseline + Strong=+2 ceiling.
     # Range model is point +/-1 notch. Physicians Mutual point = a+, band aa- .. a.
