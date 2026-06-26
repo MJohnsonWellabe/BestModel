@@ -1,0 +1,532 @@
+"""Build the AM Best rating paper (.docx) for the ELT capital-appetite session.
+
+Neutral, educational rewrite. Treats capital as one of two live levers (the coming RBC decline
+is a real risk to the balance-sheet grade), teaches RBC and BCAR on their own terms, shows where
+we sit versus peers, and lays out what realistically moves the rating with real examples.
+
+Voice rules: plain language, no em-dashes, no decorative bolding, no "not X but Y" constructions.
+Self-contained: builds its own figures and reads tool/data.json. Reuses the verified notching math.
+Output: output/whitepaper/Wellabe_AMBest_Rating.docx
+Run: python src/make_rating_paper.py
+"""
+from __future__ import annotations
+import json
+import sys
+from pathlib import Path
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+import notching  # noqa: E402
+
+FIG = ROOT / "output" / "whitepaper" / "figures"
+FIG.mkdir(parents=True, exist_ok=True)
+OUT = ROOT / "output" / "whitepaper" / "Wellabe_AMBest_Rating.docx"
+D = json.load(open(ROOT / "tool" / "data.json"))["carriers"]
+
+ACCENT = "#2E5A88"; INK = "#0B1C2C"; WELL = "#C0392B"; MUTE = "#5C6B78"
+TIERCOL = {"Strongest": "#0F5C8C", "Very Strong": "#27A35A", "Strong": "#9AA0A6", "Adequate": "#C97B2B"}
+plt.rcParams.update({"font.size": 11, "font.family": "DejaVu Sans", "axes.edgecolor": "#C9BFA8",
+                     "axes.titlesize": 13, "axes.titleweight": "bold", "figure.dpi": 150})
+
+FLOORS = {"Strongest": 530, "Very Strong": 375, "Strong": 275}
+
+
+def Wc():
+    return next(c for c in D if c.get("is_wellabe"))
+
+
+# ============================================================ figures
+def fig_bcar_history():
+    yrs = ["2022", "2023", "2024", "2025"]; bcar = [73.4, 73.0, 71.2, 67.3]
+    fig, ax = plt.subplots(figsize=(7.0, 3.5), constrained_layout=True)
+    ax.bar(yrs, bcar, color=ACCENT, width=0.6, zorder=3)
+    for x, v in zip(yrs, bcar):
+        ax.text(x, v + 1.6, f"{v:.0f}%", ha="center", fontweight="bold", color=INK)
+    # illustrative continued decline through the surplus trough
+    fx = [3, 4, 5, 6]; fy = [67.3, 63, 58, 55]
+    ax.plot(fx, fy, color="#8A8A8A", ls="--", lw=1.6, marker="o", ms=4, zorder=3)
+    ax.text(5.0, 49, "illustrative path through\nthe surplus trough", color="#8A8A8A", fontsize=8.5, ha="center")
+    ax.set_xticks(range(7)); ax.set_xticklabels(yrs + ["2026", "2027", "2028"])
+    ax.axhspan(0, 25, color=WELL, alpha=0.08, zorder=0)
+    ax.axhline(25, color=WELL, lw=1.4, ls="--", zorder=2)
+    ax.text(6.4, 28, "25% is the line for the top tier", color=WELL, ha="right", fontsize=10)
+    ax.set_ylim(0, 88); ax.set_ylabel("BCAR cushion at the 1-in-250 stress (%)")
+    ax.set_title("BCAR over time: a wide cushion, drifting down with surplus")
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(FIG / "rp_bcar.png"); plt.close(fig)
+
+
+def fig_rbc_path():
+    yrs = [2025, 2026, 2027, 2028, 2029, 2030]
+    rbc = [648, 560, 470, 400, 415, 435]   # illustrative path to the ~400% plan trough
+    fig, ax = plt.subplots(figsize=(7.0, 3.8), constrained_layout=True)
+    ax.axhspan(FLOORS["Strongest"], 720, color=TIERCOL["Strongest"], alpha=0.10)
+    ax.axhspan(FLOORS["Very Strong"], FLOORS["Strongest"], color=TIERCOL["Very Strong"], alpha=0.10)
+    ax.axhspan(FLOORS["Strong"], FLOORS["Very Strong"], color=TIERCOL["Strong"], alpha=0.12)
+    for name, y in FLOORS.items():
+        ax.axhline(y, color="#9AA0A6", ls=":", lw=1)
+        ax.text(2030.2, y, f"  {name} floor ~{y}%", va="center", fontsize=8.5, color=MUTE)
+    ax.plot(yrs, rbc, color=ACCENT, lw=2.2, marker="o", ms=5, zorder=4)
+    ax.scatter([2025], [648], color=WELL, s=90, zorder=5)
+    ax.annotate("today ~648%, Strongest", (2025, 648), xytext=(4, 8), textcoords="offset points",
+                color=WELL, fontweight="bold", fontsize=9)
+    ax.annotate("plan trough ~400%,\nin the Very Strong band", (2028, 400), xytext=(-2, -36),
+                textcoords="offset points", color=INK, fontsize=9, ha="center")
+    ax.set_ylim(250, 720); ax.set_xlim(2024.8, 2031.5)
+    ax.set_ylabel("NAIC RBC ratio, CAL basis (%)")
+    ax.set_title("Where the plan takes our RBC ratio (illustrative)")
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(FIG / "rp_rbcpath.png"); plt.close(fig)
+
+
+def _box_by_tier(ax, groups, key, gkey, log=False):
+    for c in D:
+        c["_g"] = c.get(gkey)
+    data = [[c[key] for c in D if c.get("_g") == g and c.get(key) is not None] for g in groups]
+    pos = list(range(len(groups)))
+    bp = ax.boxplot(data, positions=pos, orientation="horizontal", widths=0.55, patch_artist=True,
+                    showfliers=False, medianprops=dict(color=INK, lw=1.6),
+                    whiskerprops=dict(color="#8A8A8A"), capprops=dict(color="#8A8A8A"))
+    for patch, g in zip(bp["boxes"], groups):
+        patch.set_facecolor(TIERCOL.get(g, "#9AA0A6")); patch.set_alpha(0.35); patch.set_edgecolor("#8A8A8A")
+    for i, ys in enumerate(data):
+        ax.scatter(ys, [i] * len(ys), color=TIERCOL.get(groups[i], "#9AA0A6"), s=18, alpha=0.55,
+                   zorder=3, edgecolor="white", lw=.4)
+    ax.set_yticks(pos); ax.set_yticklabels(groups)
+    if log:
+        ax.set_xscale("log")
+    return data
+
+
+def fig_cap_tiers():
+    order = ["Strongest", "Very Strong", "Strong", "Adequate"]
+    fig, ax = plt.subplots(figsize=(7.0, 3.6), constrained_layout=True)
+    _box_by_tier(ax, order, "rbc_cal_pct", "bs_assessment", log=True)
+    w = Wc()
+    ax.scatter([w["rbc_cal_pct"]], [0], marker="D", s=160, color=WELL, edgecolor=INK, lw=1.4, zorder=6)
+    ax.annotate("Wellabe, ~648%", (w["rbc_cal_pct"], 0), xytext=(6, 15), textcoords="offset points",
+                color=WELL, fontweight="bold", fontsize=9.5)
+    ax.set_xticks([200, 300, 500, 1000, 2000]); ax.set_xticklabels(["200", "300", "500", "1,000", "2,000"])
+    ax.set_xlabel("NAIC RBC ratio, CAL basis (%)")
+    ax.set_title("Capital by balance-sheet tier across peers")
+    ax.invert_yaxis(); ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(FIG / "rp_captiers.png"); plt.close(fig)
+
+
+def fig_earn_tiers():
+    order = ["Strong", "Adequate", "Marginal"]
+    fig, ax = plt.subplots(figsize=(7.0, 3.6), constrained_layout=True)
+    _box_by_tier(ax, order, "roe_5yr_mean", "op_assessment")
+    w = Wc()
+    ax.scatter([w["roe_5yr_mean"]], [1], marker="D", s=160, color=WELL, edgecolor=INK, lw=1.4, zorder=6)
+    ax.annotate("Wellabe: losing money, held at Adequate", (w["roe_5yr_mean"], 1),
+                xytext=(8, -30), textcoords="offset points", color=WELL, fontweight="bold", fontsize=9.5)
+    for nm, lab in [("Pekin Life", "Pekin (A-)"), ("Government Personnel Mutual", "GPM (B++)")]:
+        c = next((x for x in D if x["rating_unit_name"] == nm), None)
+        if c and c.get("roe_5yr_mean") is not None:
+            ax.annotate(lab, (c["roe_5yr_mean"], 2), xytext=(0, 10), textcoords="offset points",
+                        ha="center", fontsize=9, color="#7A2418")
+    ax.axvline(0, color="#C9BFA8", lw=1)
+    ax.set_xlabel("Five-year average return on equity (%)")
+    ax.set_title("Earnings by operating tier across peers")
+    ax.invert_yaxis(); ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(FIG / "rp_earntiers.png"); plt.close(fig)
+
+
+def fig_ladder():
+    fsr = ["A", "A-", "B++"]; xi = {f: i for i, f in enumerate(fsr)}
+    rows = [
+        ("Today", "A", ACCENT, "Strongest capital, Adequate earnings"),
+        ("Capital slips one tier (RBC near the trough)", "A-", "#27A35A", "one letter, like Globe Life or American Southern"),
+        ("Earnings slip to Marginal", "A-", "#27A35A", "one letter, the Strongest grade holds it"),
+        ("Both slip together", "B++", WELL, "the real tail, like GPM today"),
+    ]
+    fig, ax = plt.subplots(figsize=(7.0, 3.5), constrained_layout=True)
+    for i, (lab, f, col, note) in enumerate(rows):
+        ax.barh(i, xi[f] + 0.5, color=col, alpha=.85, zorder=3, height=0.6)
+        ax.text(xi[f] + 0.58, i, f, va="center", fontweight="bold", color=INK, fontsize=12)
+        ax.text(xi[f] + 0.95, i, note, va="center", color=MUTE, fontsize=8.5)
+        ax.text(-0.08, i, lab, va="center", ha="right", fontsize=9.5)
+    ax.set_xlim(0, 5.4); ax.set_yticks([]); ax.invert_yaxis()
+    ax.set_xticks(range(len(fsr))); ax.set_xticklabels(fsr)
+    ax.set_title("How far we could fall, and what each step takes")
+    ax.set_xlabel("Financial strength rating")
+    for s in ["top", "right", "left"]:
+        ax.spines[s].set_visible(False)
+    fig.savefig(FIG / "rp_ladder.png"); plt.close(fig)
+
+
+def fig_msstress():
+    fig, ax = plt.subplots(figsize=(7.0, 3.2), constrained_layout=True)
+    ax.axis("off")
+    ax.text(0.5, 0.92, "A Medicare Supplement shock pushes on three blocks at once",
+            ha="center", fontsize=12.5, fontweight="bold", color=INK, transform=ax.transAxes)
+    # source box
+    ax.add_patch(plt.Rectangle((0.34, 0.62), 0.32, 0.16, fc="#FBE9E7", ec=WELL, lw=1.4, transform=ax.transAxes))
+    ax.text(0.5, 0.70, "Rate, regulatory, or\ncompetitive shock to Med Supp", ha="center", va="center",
+            fontsize=9.5, color=WELL, fontweight="bold", transform=ax.transAxes)
+    blocks = [(0.16, "Earnings", "loss ratios rise,\nthe turn is delayed"),
+              (0.5, "Franchise", "our largest line\nis concentrated by state"),
+              (0.84, "Capital", "weaker earnings\ndraw down surplus")]
+    for x, title, sub in blocks:
+        ax.annotate("", xy=(x, 0.42), xytext=(0.5, 0.62),
+                    arrowprops=dict(arrowstyle="-|>", color="#8A8A8A", lw=1.5), transform=ax.transAxes)
+        ax.add_patch(plt.Rectangle((x - 0.14, 0.18), 0.28, 0.22, fc="#EEF2F6", ec=ACCENT, lw=1.2, transform=ax.transAxes))
+        ax.text(x, 0.34, title, ha="center", fontsize=10.5, fontweight="bold", color=ACCENT, transform=ax.transAxes)
+        ax.text(x, 0.245, sub, ha="center", fontsize=8.5, color=INK, transform=ax.transAxes)
+    fig.savefig(FIG / "rp_msstress.png"); plt.close(fig)
+
+
+# ============================================================ docx helpers
+def _cell_bg(cell, hexc):
+    tcPr = cell._tc.get_or_add_tcPr()
+    shd = OxmlElement("w:shd"); shd.set(qn("w:val"), "clear"); shd.set(qn("w:fill"), hexc)
+    tcPr.append(shd)
+
+
+def part(doc, text):
+    p = doc.add_paragraph(); r = p.add_run(text); r.bold = True; r.font.size = Pt(12.5)
+    r.font.color.rgb = RGBColor.from_string(INK.lstrip("#"))
+    p.paragraph_format.space_before = Pt(16); p.paragraph_format.space_after = Pt(2)
+
+
+def H(doc, text, before=12):
+    p = doc.add_paragraph(); r = p.add_run(text); r.bold = True; r.font.size = Pt(13.5)
+    r.font.color.rgb = RGBColor.from_string(ACCENT.lstrip("#"))
+    p.paragraph_format.space_before = Pt(before); p.paragraph_format.space_after = Pt(2)
+
+
+def body(doc, text, size=10.5):
+    p = doc.add_paragraph(); r = p.add_run(text); r.font.size = Pt(size)
+    p.paragraph_format.space_after = Pt(6); return p
+
+
+def bullet(doc, text):
+    p = doc.add_paragraph(style="List Bullet"); r = p.add_run(text); r.font.size = Pt(10.5); return p
+
+
+def img(doc, name, caption):
+    doc.add_picture(str(FIG / name), width=Inches(6.1))
+    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+    c = doc.add_paragraph(); r = c.add_run(caption); r.italic = True; r.font.size = Pt(9)
+    r.font.color.rgb = RGBColor.from_string(MUTE.lstrip("#"))
+    c.alignment = WD_ALIGN_PARAGRAPH.CENTER; c.paragraph_format.space_after = Pt(10)
+
+
+def table(doc, headers, rows, highlight=None):
+    t = doc.add_table(rows=1, cols=len(headers)); t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    try:
+        t.style = "Light Grid Accent 1"
+    except Exception:
+        pass
+    for j, h in enumerate(headers):
+        c = t.rows[0].cells[j]; c.text = ""
+        r = c.paragraphs[0].add_run(h); r.bold = True; r.font.size = Pt(9)
+        r.font.color.rgb = RGBColor.from_string("FFFFFF"); _cell_bg(c, ACCENT.lstrip("#"))
+    for row in rows:
+        cells = t.add_row().cells
+        hot = highlight and row[0] == highlight
+        for j, val in enumerate(row):
+            cells[j].text = ""
+            r = cells[j].paragraphs[0].add_run(str(val)); r.font.size = Pt(9)
+            if hot:
+                r.bold = True; r.font.color.rgb = RGBColor.from_string(WELL.lstrip("#"))
+                _cell_bg(cells[j], "FBE9E7")
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+    return t
+
+
+# ============================================================ peer table
+CURATED = [
+    "Guardian Life", "Physicians Mutual", "Mutual of Omaha", "Aflac",
+    "Guarantee Trust Life", "National Guardian Life", "CNO — Bankers Life", "American National",
+    "Globe Life", "American-Amicable / Trinity", "Wellabe Group",
+    "National Western Life", "Assurity Life", "Pekin Life", "Funeral Directors Life",
+    "Homesteaders Life", "Atlantic American — American Southern",
+    "ManhattanLife — Assurance", "Government Personnel Mutual", "Investors Heritage",
+    "ManhattanLife — Western United", "Continental General", "Sentinel Security Life",
+]
+FSR_ORDER = ["A++", "A+", "A", "A-", "B++", "B+", "B", "B-"]
+
+
+def peer_rows():
+    by = {c["rating_unit_name"]: c for c in D}
+    out = []
+    for nm in CURATED:
+        c = by.get(nm)
+        if not c:
+            continue
+        rbc = c.get("rbc_cal_pct")
+        out.append([nm.replace("Wellabe Group", "Wellabe").replace(" — ", ", "),
+                    c.get("fsr") or "n/a", c.get("bs_assessment") or "n/a",
+                    c.get("op_assessment") or "n/a", c.get("bp_assessment") or "n/a",
+                    f"{round(rbc):,}%" if rbc else "n/a"])
+    out.sort(key=lambda r: (FSR_ORDER.index(r[1]) if r[1] in FSR_ORDER else 99,
+                            -float(r[5].replace(",", "").rstrip("%")) if r[5] != "n/a" else 0))
+    return out
+
+
+# ============================================================ build
+def build():
+    doc = Document()
+    doc.styles["Normal"].font.name = "Calibri"; doc.styles["Normal"].font.size = Pt(10.5)
+
+    t = doc.add_paragraph(); r = t.add_run("Our AM Best Rating: How It Works, Where We Stand, and What Could Move It")
+    r.bold = True; r.font.size = Pt(18); r.font.color.rgb = RGBColor.from_string(INK.lstrip("#"))
+    for line in ["Office of the Chief Actuary. Strategy retreat, capital appetite session. ELT, internal and confidential.",
+                 "Rated A (Excellent), Stable outlook. Wellabe Group, AMB #070369. Best's Credit Report effective May 2026."]:
+        s = doc.add_paragraph(); rs = s.add_run(line); rs.italic = True; rs.font.size = Pt(10)
+        rs.font.color.rgb = RGBColor.from_string(MUTE.lstrip("#"))
+
+    H(doc, "What this paper is for", before=10)
+    body(doc, "The purpose here is to explain how our AM Best rating actually works, where we stand, and what would "
+              "realistically move it, so we can talk about capital from a shared and accurate footing. It is written "
+              "to teach the mechanics rather than to argue a point of view. Two ideas tend to get tangled in these "
+              "conversations, the regulator's capital ratio and Best's own capital model, and most of the confusion "
+              "clears up once we keep them straight.")
+    body(doc, "One thing to say plainly at the start, because the rest of the paper depends on it. Our plan draws our "
+              "capital down over the next few years. The RBC ratio falls from around 648% today toward a trough near "
+              "400% around 2028 before it rebuilds. That decline is real, it is deliberate, and it is large enough "
+              "that it could pressure our balance-sheet grade. So capital is not a settled strength we can set aside. "
+              "It is one of two things that can move our rating, and it deserves a clear-eyed look.")
+
+    # ---------- PART I
+    part(doc, "Part I.  How the rating works")
+
+    H(doc, "1.  What the rating is, and where it matters to us")
+    body(doc, "The financial strength rating is AM Best's opinion of our ability to pay claims. It is a business "
+              "asset, and it is worth being honest about where it helps us and where it matters less. We sell mostly "
+              "through independent marketing organizations, independent agents, and preneed funeral homes. We do not "
+              "sell through banks or broker-dealers, and we do not write the kind of long-duration annuity business "
+              "where buyers screen hard on a minimum letter.")
+    body(doc, "Because of that, the rating matters to us in specific places. It matters in preneed, where funeral-home "
+              "programs place obligations that run for decades and prefer strong, stable carriers. It matters in "
+              "reinsurance, where our counterparties price our rating into the business we assume and cede. It matters "
+              "when we raise capital, including the surplus note we are working toward, where the rating affects "
+              "whether we can place it and at what cost. In our agent Medicare Supplement and supplemental-health "
+              "channels it matters less, because the product is standardized and backed by state guaranty funds, so "
+              "agents place business on price, commission, and service more than on the letter.")
+
+    H(doc, "2.  How AM Best builds the letter")
+    body(doc, "The rating runs off published tables, so we can read our own rating and a competitor's the same way. "
+              "The balance sheet sets a starting point, and the other three pieces move it up or down.")
+    body(doc, "Step one. The balance-sheet grade sets a starting credit rating:")
+    table(doc, ["Balance-sheet grade", "Starting point (ICR)", "Letter it implies"],
+          [["Strongest", "a+ / a", "A"], ["Very Strong", "a / a-", "A / A-"],
+           ["Strong", "a- / bbb+", "A- / B++"], ["Adequate", "bbb+ / bbb / bbb-", "B++ / B+"]],
+          highlight="Strongest")
+    body(doc, "Step two. Each of the other three pieces adds or removes notches:")
+    table(doc, ["Building block", "How far it can move us", "Neutral, no-change grade"],
+          [["Operating performance (earnings)", "up 2, down 3", "Adequate"],
+           ["Business profile (franchise)", "up 2, down 2", "Neutral"],
+           ["Risk management", "up 1, down 4", "Appropriate"]])
+    body(doc, "Two things are worth noticing. The downside on each piece is larger than the upside, so it is easier "
+              "to lose ground than to gain it. And the balance sheet only gets a carrier to the starting line. A "
+              "company can open at A on capital and still finish lower if its earnings and franchise are weak. As a "
+              "worked example, a Strongest balance sheet opens at A. Hold the other three at no change and the carrier "
+              "stays at A. Let two of them each slip a notch and the same well-capitalized company lands at B++.")
+
+    H(doc, "3.  The two capital yardsticks: RBC and BCAR")
+    body(doc, "This is the part most worth slowing down on, because two different measures get used for two different "
+              "jobs, and they do not always agree.")
+    body(doc, "The first is NAIC risk-based capital, which we report on the CAL basis and which runs around 648% for "
+              "us today. The formula sets a regulatory floor. It compares our total adjusted capital to a control "
+              "level the regulator calculates. The ladder below shows what happens as the ratio falls. The useful "
+              "thing to understand is what this number is for. It is a floor and an early-warning gauge. Once a "
+              "company is well above the floor it tells you the regulator is comfortable, and very little more. It "
+              "does not rank healthy carriers against each other, and it is not the number AM Best uses to set a "
+              "rating. Globe Life makes the point: it runs an RBC ratio around 316%, less than half of ours, and it "
+              "is rated A, the same letter we hold.")
+    table(doc, ["Regulatory level (CAL basis)", "Ratio", "What happens"],
+          [["Company Action Level", "below 100%", "File a corrective plan"],
+           ["Regulatory Action Level", "below 75%", "Regulator prescribes action"],
+           ["Authorized Control Level", "below 50%", "Regulator may take control"],
+           ["Mandatory Control Level", "below 35%", "Regulator must take control"]])
+    body(doc, "The second measure is the one that actually drives the balance-sheet grade, and it is Best's own "
+              "capital model, called BCAR. Best takes our real balance sheet and runs it through a series of bad "
+              "years, up to roughly a 1-in-250-year loss, and asks how much capital is still standing afterward. A "
+              "company graded Strongest has more than about 25% of its capital still to spare after that stress. BCAR "
+              "captures things the RBC ratio does not, including asset risk, reserve adequacy, and catastrophe "
+              "exposure, which is why a carrier can look strong on one measure and less so on the other. One more "
+              "point that matters later: BCAR is a snapshot of today's balance sheet under stress. It is not a "
+              "forecast. What looks ahead is Best's rating opinion and outlook, which carry its view of where we are "
+              "headed.")
+    body(doc, "So we hold two capital numbers in mind. The RBC ratio is the regulator's floor and the number our plan "
+              "moves the most. BCAR is Best's stress test and the number that sets our grade. They can move together "
+              "or apart, and the gap between them is the heart of the capital question for us.")
+
+    # ---------- PART II
+    part(doc, "Part II.  Where Wellabe stands")
+
+    H(doc, "4.  Our rating today, and how we got to A")
+    body(doc, "Best grades us Strongest on the balance sheet, Adequate on earnings, Neutral on franchise, and "
+              "Appropriate on risk management. The balance sheet opens us at A, the other three net to no change, and "
+              "we land at A with a Stable outlook.")
+    body(doc, "The thing shaping everything else is our recent earnings. We have run losses for three straight years, "
+              "and the losses have grown each year. Our accident-and-health combined ratio has climbed every year, "
+              "and surplus has come down since 2021.")
+    table(doc, ["Year", "Net income", "Capital and surplus", "A&H combined ratio", "BCAR"],
+          [["2021", "+$22M", "$630M", "95%", "n/a"], ["2022", "-$1M", "$615M", "99%", "73.4%"],
+           ["2023", "-$21M", "$602M", "103%", "73.0%"], ["2024", "-$52M", "$560M", "109%", "71.2%"],
+           ["2025", "-$71M", "$531M", "116%", "67.3%"]])
+    body(doc, "We are still A and still Stable while running the largest losses in our history. The reason is that "
+              "Best does not read these as ordinary losses. Statutory accounting makes us book the full cost of "
+              "writing a new policy right away, so a record year of Medicare Supplement sales, with premium up 13% in "
+              "2025, shows up as a loss today on business we expect to earn back over its life. Best is giving us "
+              "credit for that, and it has said so in its rating drivers. It is a judgement, and judgements can "
+              "change, which is why the next two sections matter.")
+
+    H(doc, "5.  Our capital, and where the plan takes it")
+    body(doc, "Here is the honest core of the capital question. Both of our capital measures are coming down, and the "
+              "plan intends them to.")
+    body(doc, "BCAR has fallen from 73.4% at year-end 2022 to 67.3% at year-end 2025, a little over six points in "
+              "three years, as losses draw down surplus. It is still far above the 25% line for Strongest, but the "
+              "direction is steady and it will keep going while we fund growth.")
+    img(doc, "rp_bcar.png", "Figure 1. BCAR over time. Still well above the 25% bar, and trending down as surplus funds growth. The dashed path is illustrative.")
+    body(doc, "The RBC ratio moves more. It runs about 648% today and the plan carries it toward a trough near 400% "
+              "around 2028 before it rebuilds. That matters because of where 400% sits. In our peer data, carriers "
+              "graded Strongest tend to sit above roughly 530% on this basis, with the Very Strong band running from "
+              "about 375% to 530%. A 400% ratio sits inside the Very Strong band, not the Strongest one.")
+    img(doc, "rp_rbcpath.png", "Figure 2. An illustrative path for our RBC ratio to the planned trough. At ~400% it sits in the Very Strong band on the peer-floor read, below the Strongest floor.")
+    body(doc, "So the real question is straightforward. Does our balance-sheet grade stay Strongest through the "
+              "trough, or does it slip to Very Strong. The evidence cuts both ways, and we should hold both halves. "
+              "On one side, the RBC ratio at the trough lands in Very Strong territory on the peer read, which argues "
+              "for a downgrade of the grade. On the other side, BCAR is the measure Best actually uses, and BCAR has "
+              "much more room than the RBC ratio suggests, so it may still compute Strongest at a 400% RBC level. We "
+              "will not know until Best re-runs BCAR each year on our actual balance sheet. The prudent planning "
+              "assumption is that a slip from Strongest to Very Strong is a real possibility at the trough, and that "
+              "it becomes more likely if asset risk keeps drifting up at the same time. On Best's reported measure, "
+              "our higher-risk asset leverage rose to roughly 40% of capital and surplus in 2025 from about 29% in "
+              "2023, which softens balance-sheet quality even when the headline ratio looks fine.")
+
+    H(doc, "6.  How we compare to peers")
+    body(doc, "Reading the same four grades across the competitive set shows where the letters really come from. The "
+              "table is sorted by rating, then by capital. The capital column and the rating do not move together.")
+    table(doc, ["Carrier", "Rating", "Balance sheet", "Earnings", "Franchise", "RBC (CAL)"],
+          peer_rows(), highlight="Wellabe")
+    body(doc, "Two patterns stand out. First, capital does not sort the ratings. Globe Life holds our same A on a "
+              "Strong balance sheet and a 316% RBC ratio, carried by its size and franchise. Guarantee Trust Life "
+              "holds an A above 800% RBC. ManhattanLife sits at B++ with more reported capital than several A- "
+              "carriers. What sorts the ratings is earnings and franchise. Second, we are a deliberate outlier in two "
+              "directions. We over-index on capital, holding one of only seven Strongest grades in the sample and an "
+              "RBC ratio in the top quartile. And we under-index on earnings, with a five-year return on equity near "
+              "the bottom of the whole group, held at Adequate where most A-rated peers are graded Strong. The "
+              "typical A-rated carrier is the mirror image of us, a Very Strong balance sheet paired with Strong "
+              "earnings. We have held our A with capital and a believable plan where others hold it with profits.")
+    img(doc, "rp_captiers.png", "Figure 3. Capital by balance-sheet tier across peers. We sit high today, which is the cushion the plan now spends down.")
+    body(doc, "That comparison is also the warning. The capital we are about to draw down is the block we lean on "
+              "hardest, and the earnings block we would fall back on is our weakest. The senior-market specialists "
+              "that look most like us on the soft blocks, National Guardian, Funeral Directors, Homesteaders, GPM, "
+              "ManhattanLife, cluster around A- and B++.")
+
+    # ---------- PART III
+    part(doc, "Part III.  What realistically moves us")
+
+    H(doc, "7.  Lever one: the balance sheet")
+    body(doc, "If the RBC and BCAR decline costs us the Strongest grade, the math is clean. Strongest opens us at A. "
+              "A grade of Very Strong, one tier down, opens at A-. A grade of Strong, two tiers down, also opens at "
+              "A- on its strong end. So a slip in the balance-sheet grade, by one tier or two, most likely costs us "
+              "one letter, from A to A-, as long as the franchise stays Neutral and earnings stay at Adequate.")
+    body(doc, "Real carriers show this is survivable at A-. Globe Life runs a Strong balance sheet and holds A on the "
+              "strength of its franchise. American Southern, in the Atlantic American group, runs a Strong balance "
+              "sheet at about 213% RBC, well below where our trough lands, with the same Neutral franchise we hold, "
+              "and Best rates it A-. A weaker balance sheet does not, by itself, take a carrier below A-. To fall "
+              "below A- on capital alone, the balance sheet would have to drop all the way to Adequate, which is far "
+              "from where our plan goes.")
+
+    H(doc, "8.  Lever two: operating performance")
+    body(doc, "The second lever is earnings, and Best is holding us at Adequate on a forecast: losses that crest and "
+              "then ease as the Medicare Supplement block matures. As long as results track that forecast we stay at "
+              "Adequate. If losses run well past it, the grade slips toward Marginal, and on its own that also costs "
+              "us one letter, from A to A-, because our Strongest balance sheet cushions it.")
+    img(doc, "rp_earntiers.png", "Figure 4. Earnings by operating tier. We run losses yet are held at Adequate, a judgement about the plan rather than this year's number.")
+    body(doc, "Government Personnel Mutual shows what a Marginal grade looks like from a lower starting point. It runs "
+              "a Very Strong balance sheet with Marginal earnings and is rated B++. Pekin has the very same grades and "
+              "holds A-, because the committee gave it a one-notch lift. Same labels, different letters, which is a "
+              "reminder that within each grade there is a range and the committee places carriers inside it.")
+    body(doc, "Two features make the earnings lever easier to live with. We usually get warning, because a downgrade "
+              "from A is almost always preceded by a move from Stable to a Negative outlook, which tends to give a "
+              "year or more of lead time, and our outlook is Stable today. And the move is reversible, because the "
+              "grade follows a trend, so a return to profit can win the letter back. The single number to watch is "
+              "the combined ratio. It reached 116% in 2025, and the whole story turns on it bending back toward 100%. "
+              "Early 2026 results are the first real test of whether that bend is starting, and if it is, that is the "
+              "clearest evidence we can put in front of Best that the plan is working.")
+
+    H(doc, "9.  The two levers together")
+    body(doc, "The reason to take the balance-sheet lever seriously is what happens when both move at once. Each lever "
+              "on its own costs one letter, to A-. Both together cost two, to B++. The math is direct: a Very Strong "
+              "balance sheet with Marginal earnings opens at bbb+, which is B++. That is exactly GPM today.")
+    img(doc, "rp_ladder.png", "Figure 5. Each lever on its own costs one letter. B++ takes both at the same time.")
+    body(doc, "What makes this more than a remote tail for us is timing. The plan draws capital down to its trough "
+              "around 2028, which is the same window in which the earnings story is most under test, before Medicare "
+              "Supplement earnings are projected to turn positive in 2029. In other words, the plan stresses both "
+              "levers in the same two years. We are also starting from the bottom of Adequate on earnings, so the "
+              "earnings block has little room to absorb a capital slip. None of this makes B++ likely, and the "
+              "warning signs and reversibility still apply, but it does mean the both-slip case is a real scenario to "
+              "plan around rather than a corner we can dismiss. The table below is our own judgement for discussion, "
+              "not model output.")
+    table(doc, ["Path", "Rough odds", "What it looks like"],
+          [["Plan holds", "about 50%", "Capital and earnings track the plan, we stay A and Stable through 2030."],
+           ["A scare, no downgrade", "about 25%", "Outlook goes Negative around 2027 or 2028, then back to Stable by 2030 as earnings turn and capital rebuilds."],
+           ["A one-letter dip to A-", "about 20%", "The balance-sheet grade slips at the trough, or the earnings turn comes late. Recoverable as results improve."],
+           ["Below A- to B++", "about 5%", "Capital and earnings slip together near the trough. The real tail, and the one this paper is about."]])
+
+    H(doc, "10.  Medicare Supplement concentration, the stress that hits everything at once")
+    body(doc, "There is one scenario that does not respect the neat one-lever-at-a-time logic, and it deserves its "
+              "own place. Medicare Supplement is our largest line, and our sales are concentrated in our top states. "
+              "A shock to that line, whether a regulatory change, a wave of rate pressure, or a competitive move, "
+              "would not land in one place. It would push on our earnings, because loss ratios would rise and the "
+              "turn would be delayed. It would push on our franchise, because our most concentrated line is the one "
+              "under pressure. And it would push on our capital, because weaker earnings draw down surplus faster. "
+              "This is the event that can move several blocks at the same time, which is why it is the concentration "
+              "we watch most closely even though the franchise grade is otherwise stable.")
+    img(doc, "rp_msstress.png", "Figure 6. A single Medicare Supplement shock pushes on earnings, franchise, and capital together, which is how a one-letter risk becomes a two-letter one.")
+
+    H(doc, "11.  What we watch, and what is in our control")
+    bullet(doc, "The BCAR trajectory, because BCAR and not the RBC ratio sets the balance-sheet grade. If BCAR holds well above 25% through the trough, the Strongest grade is more likely to survive the RBC decline.")
+    bullet(doc, "The combined ratio, the single clearest sign of whether the earnings turn is arriving. A turn in 2026 is the best evidence we can give Best.")
+    bullet(doc, "Capital actions and their effect on the grade. The surplus note we are working toward raises capital and helps both the RBC ratio and BCAR, and Best treats access to it as a sign of financial flexibility. The trade-off is that a surplus note is slightly lower-quality capital than retained earnings and carries an interest cost, so it gives a small offset on quality. We also have no debt outstanding, FHLB Des Moines capacity, and reinsurance options, all of which Best already counts toward the balance sheet.")
+    bullet(doc, "The outlook, our earliest warning. A move from Stable to Negative is the signal that Best's view is shifting, and we would treat it as the point to act and to bring it to the board.")
+
+    # ---------- summary
+    part(doc, "Summary")
+    body(doc, "The rating is built from four blocks, and capital sets the floor under the other three. We hold the "
+              "top balance-sheet grade today, but our plan draws capital down toward a trough near 400% RBC around "
+              "2028, and that decline could pressure the grade. BCAR, the measure Best actually uses, has more room "
+              "than the RBC ratio shows and may hold the grade, but a slip from Strongest to Very Strong is a real "
+              "possibility we should plan around.")
+    body(doc, "Two levers can move us, and each on its own costs one letter, to A-. A capital slip takes us to A-, "
+              "and a Strong balance sheet at A- is survivable, as Globe Life and American Southern show. An earnings "
+              "slip takes us to A- as well, and that move comes with warning and is reversible. The case that takes "
+              "us to B++ is both levers slipping together, and the reason it is worth real attention is timing, "
+              "because the plan stresses capital and earnings in the same two years, with earnings already at the "
+              "bottom of Adequate. A Medicare Supplement shock is the one event that could push capital, earnings, "
+              "and franchise at once, so it is the concentration we watch most. The things in our control are the "
+              "combined-ratio turn, the BCAR trajectory, disciplined capital actions, and reading the outlook as the "
+              "early signal it is.")
+
+    note = doc.add_paragraph(); rn = note.add_run(
+        "Sources and method. Wellabe's rating, grades, and financials come from the AM Best Credit Report for "
+        "Wellabe Group, AMB #070369, effective May 2026, and prior reports. Peer figures come from a 50-carrier "
+        "model built from public AM Best grades and S&P Capital IQ and SNL statutory data. RBC is on the CAL basis. "
+        "The RBC and BCAR forward paths and the likelihood ranges are illustrative, drawn from the 2026 strategic "
+        "plan and our own judgement for discussion, not AM Best output. Peer-relative figures are sample "
+        "approximations, not AM Best's internal composites. Internal and confidential, for ELT use.")
+    rn.italic = True; rn.font.size = Pt(8.5); rn.font.color.rgb = RGBColor.from_string("8A8A8A")
+    note.paragraph_format.space_before = Pt(14)
+    doc.save(OUT)
+
+
+if __name__ == "__main__":
+    fig_bcar_history(); fig_rbc_path(); fig_cap_tiers(); fig_earn_tiers(); fig_ladder(); fig_msstress()
+    build()
+    print("wrote " + str(OUT.relative_to(ROOT)))
