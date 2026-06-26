@@ -196,7 +196,11 @@ function welComputeAll(w){
   const clamp=i=>Math.max(0,Math.min(ICR_SCALE.length-1,i));
   const base=BASE[w.bs], nOP=OP[w.op]||0,nBP=BP[w.bp]||0,nERM=ERM[w.erm]||0, tot=nOP+nBP+nERM;
   const idx=clamp(ICR_SCALE.indexOf(base)-tot);
-  return {base,nOP,nBP,nERM,tot,icr:ICR_SCALE[idx],idx,fsr:toFsr(ICR_SCALE[idx])};
+  // band = point +/- 1 notch (committee places within the baseline/notch ranges)
+  const fStrong=toFsr(ICR_SCALE[clamp(idx-1)]), fMid=toFsr(ICR_SCALE[idx]), fWeak=toFsr(ICR_SCALE[clamp(idx+1)]);
+  const seq=[...new Set([fStrong,fMid,fWeak])];
+  const range=seq.length>1?seq[0]+" to "+seq[seq.length-1]:seq[0];
+  return {base,nOP,nBP,nERM,tot,icr:ICR_SCALE[idx],idx,fsr:fMid,fStrong,fWeak,range};
 }
 function viewWellabe(){
   const form=document.getElementById("welForm");
@@ -211,17 +215,17 @@ function viewWellabe(){
 function welCalc(){
   const now=welComputeAll(WEL), cur=welComputeAll(WEL_CUR), delta=now.idx-cur.idx;
   const sign=n=>n>0?"+"+n:""+n;
-  const deltaTxt=delta===0?"same as today's A":(delta>0?`${delta} notch${delta>1?"es":""} below today's A`:`${-delta} notch${-delta>1?"es":""} above today's A`);
+  const deltaTxt=delta===0?"unchanged from today":(delta>0?`${delta} notch${delta>1?"es":""} weaker than today's A`:`${-delta} notch${-delta>1?"es":""} stronger than today's A`);
   const col=delta>0?"#C0392B":delta<0?"#2E7D5B":"var(--ink)";
   document.getElementById("welResult").innerHTML=
     `<div style="text-align:center;padding:16px;border-radius:12px;background:#F3F6FA;border:1px solid var(--line)">
-       <div style="font-size:13px;color:var(--muted)">Predicted FSR</div>
-       <div style="font-family:'EB Garamond',serif;font-size:48px;line-height:1;color:${col};margin:4px 0">${now.fsr||"—"}</div>
-       <div style="font-size:12.5px;color:var(--muted)">${deltaTxt}</div></div>
-     <div class="n" style="margin-top:10px">Baseline from <b>${WEL.bs}</b> balance sheet = ICR <b>${now.base}</b>; then `+
+       <div style="font-size:13px;color:var(--muted)">Predicted FSR range</div>
+       <div style="font-family:'EB Garamond',serif;font-size:40px;line-height:1.05;color:${col};margin:4px 0">${now.range||"—"}</div>
+       <div style="font-size:12.5px;color:var(--muted)">central estimate <b>${now.fsr}</b> · ${deltaTxt}</div></div>
+     <div class="n" style="margin-top:10px">Baseline from <b>${WEL.bs}</b> balance sheet = ICR <b>${now.base}</b> (a 1-notch band); then `+
     `operating ${sign(now.nOP)}, business profile ${sign(now.nBP)}, ERM ${sign(now.nERM)} = <b>${sign(now.tot)} net notch${Math.abs(now.tot)===1?"":"es"}</b> `+
-    `→ ICR <b>${now.icr}</b> → FSR <b>${now.fsr}</b>.</div>
-     <div class="approx" style="margin-top:6px">Uses AM Best's published baseline + notch tables (midpoint notches). ERM is capture-only in the field model; the comprehensive adjustment can shift the committee result ±1.</div>`;
+    `→ ICR ~<b>${now.icr}</b> → FSR <b>${now.range}</b>.</div>
+     <div class="approx" style="margin-top:6px">AM Best's baseline and each notch are published as <b>ranges</b>; the committee places within them on relative strength, so the result is a band, not one letter. Real peers with the same blocks (e.g. Pekin, Funeral Directors at Very Strong) land at the strong end. ERM is capture-only here; the comprehensive adjustment can shift ±1.</div>`;
 }
 
 /* ===================== full data export (for the white paper) ===================== */
