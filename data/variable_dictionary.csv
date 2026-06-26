@@ -1,0 +1,84 @@
+field,block,pull / derived,definition,S&P / SNL source hint
+amb_number,Identifier,pull,AM Best rating-unit ID,AM Best / S&P rating record
+rating_unit_name,Identifier,pull,Group name as AM Best names it,AM Best release
+lead_entity,Identifier,pull,Legal entity whose statutory statement is pulled,SNL entity
+naic_code,Identifier,pull,NAIC company code of lead entity,SNL / NAIC
+domicile_state,Identifier,pull,Lead entity domicile,Statutory
+ownership,Identifier,pull,mutual / stock / MHC / fraternal / RRG,SNL
+ultimate_parent,Identifier,pull,Top of ownership chain,SNL
+data_as_of,Identifier,pull,Statutory statement date (YE2025),Statutory
+stratum,Identifier,pull,Sampling tag from roster (QC only),Roster
+fsr,Outcome (Y),pull,Financial Strength Rating (A++ … D),AM Best release
+icr,Outcome (Y),pull,Long-Term Issuer Credit Rating (aaa … c),AM Best release
+outlook,Outcome (Y),pull,stable / positive / negative,AM Best release
+under_review,Outcome (Y),pull,Under-review flag + implication,AM Best release
+bs_assessment,Outcome (Y),pull,Strongest / Very Strong / Strong / Adequate / Weak,AM Best release
+op_assessment,Outcome (Y),pull,Strong / Adequate / Marginal / Weak,AM Best release
+bp_assessment,Outcome (Y),pull,Favorable / Neutral / Limited / Very Limited,AM Best release
+erm_assessment,Outcome (capture only),pull,Very Strong / Appropriate / Marginal / Weak — NOT modeled,AM Best release
+rating_action_date,Outcome (Y),pull,Date of the action that set the assessments,AM Best release
+last_action_type,Outcome (Y),pull,affirm / upgrade / downgrade / outlook / under review,AM Best release
+source_url,Outcome (Y),pull,Link to AM Best release or S&P rating record,—
+rbc_cal_pct,Balance sheet,pull,TAC ÷ Company Action Level RBC — PRIMARY,SNL RBC page / Five-Yr Hist.
+tac_usd,Balance sheet,pull,Total Adjusted Capital ($000),SNL RBC page
+acl_rbc_usd,Balance sheet,pull,Authorized Control Level RBC ($000),SNL RBC page
+capital_surplus_usd,Balance sheet,pull,Capital & surplus ($000),Statutory balance sheet
+avr_usd,Balance sheet,pull,Asset Valuation Reserve ($000),Statutory
+total_invested_assets_usd,Balance sheet,pull,Total invested (admitted) assets ($000) — denom for asset mix,Statutory
+total_reserves_usd,Balance sheet,pull,Total policy reserves ($000),Statutory
+surplus_notes_usd,Balance sheet,pull,Surplus notes outstanding ($000),Statutory
+reinsurance_leverage,Balance sheet,pull,Reinsurance recoverable ÷ capital (counterparty reliance),SNL
+modco_funds_withheld_usd,Balance sheet,pull,Modco / funds-withheld balances if material ($000),Statutory Sched S
+capital_contributions_5yr,Balance sheet,pull,"Parent capital infusions, 5-yr ($000)",Statutory surplus acct
+bonds_pct,Balance sheet,pull,Bonds ÷ total invested assets (%),Statutory Sched D
+naic_class1_pct,Balance sheet,pull,NAIC 1 bonds ÷ total bonds (%),Sched D
+naic_class2_pct,Balance sheet,pull,NAIC 2 bonds ÷ total bonds (%),Sched D
+below_ig_pct,Balance sheet,pull,NAIC 3–6 bonds ÷ total bonds (%),Sched D
+schedule_ba_pct,Balance sheet,pull,Schedule BA (alts/LP/PE) ÷ invested assets (%),Sched BA
+mortgage_pct,Balance sheet,pull,Mortgage loans ÷ invested assets (%),Sched B
+cml_pct,Balance sheet,pull,Commercial mortgage subset ÷ invested assets (%),Sched B
+real_estate_pct,Balance sheet,pull,Real estate ÷ invested assets (%),Sched A
+affiliated_pct,Balance sheet,pull,Affiliated investments ÷ invested assets (%),Statutory
+common_stock_pct,Balance sheet,pull,Unaffiliated common stock ÷ invested assets (%),Sched D-2
+net_unrealized_usd,Balance sheet,pull,Net unrealized gain/(loss) on bonds ($000) — rate drag,Statutory / Sched D
+bond_avg_maturity,Balance sheet,pull,Wtd avg maturity or effective duration (yrs),Sched D
+fhlb_advances_usd,Balance sheet,pull,FHLB borrowings ($000),Statutory notes
+adverse_dev_3yr_usd,Balance sheet,pull,"Reserve strengthening / adverse development, 3-yr ($000)",Statutory / notes
+aat_result,Balance sheet,pull,Asset adequacy / CF testing result if disclosed (pass/shortfall),Actuarial opinion
+higher_risk_leverage,Balance sheet,[D] derive,(Sched BA + unaff common stock + real estate + below-IG bonds) ÷ C&S — KEY asset-risk metric,derived
+surplus_notes_pct,Balance sheet,[D] derive,Surplus notes ÷ (C&S + surplus notes),derived
+net_unrealized_pct_cap,Balance sheet,[D] derive,Net unrealized ÷ C&S,derived
+reserves_to_surplus,Balance sheet,[D] derive,Total reserves ÷ C&S,derived
+net_income_2021..2025,Operating perf.,pull,"Statutory net income, 5 yrs ($000)",Five-Yr Hist.
+roe_2021..2025,Operating perf.,pull,"Return on equity, 5 yrs (%)",SNL / Five-Yr Hist.
+roa_2021..2025,Operating perf.,pull,"Return on assets, 5 yrs (%)",SNL
+pretax_op_income_2021..2025,Operating perf.,pull,"Pretax operating gain EX realized capital gains, 5 yrs ($000)",Statutory IS
+ah_combined_ratio_2021..2025,Operating perf.,pull,"A&H combined ratio, 5 yrs (%) — KEY for senior carriers",SNL health exhibit
+benefit_ratio_2021..2025,Operating perf.,pull,"Total benefits ÷ premium, 5 yrs (%)",Statutory
+expense_ratio_2021..2025,Operating perf.,pull,"Expense ÷ premium, 5 yrs (%)",Statutory
+net_premium_2021..2025,Operating perf.,pull,"Net premium written, 5 yrs ($000)",Five-Yr Hist.
+uw_gain_loss_2025,Operating perf.,pull,"Underwriting gain/(loss), current ($000)",Statutory
+net_investment_income_2025,Operating perf.,pull,"Net investment income, current ($000)",Statutory
+realized_gains_2025,Operating perf.,pull,"Realized capital gains, current ($000) — one-time reliance",Statutory
+ceded_premium_pct,Operating perf.,pull,Ceded ÷ direct premium (%),Sched S / Exhibit
+roe_5yr_mean / std / trend,Operating perf.,[D] derive,"Level, volatility, OLS slope of ROE",derived
+ah_cr_level / trend,Operating perf.,[D] derive,Last value + slope of A&H combined ratio,derived
+earnings_mix,Operating perf.,[D] derive,NII ÷ (NII + UW gain) — investment-income reliance,derived
+oneoff_reliance,Operating perf.,[D] derive,Realized gains ÷ pretax income,derived
+premium_cagr_5yr,Operating perf.,[D] derive,5-yr premium CAGR,derived
+roe_vs_composite,Operating perf.,[D] derive,ROE mean minus L/H composite median (peer-relative — approx.),derived
+growth_strain_flag,Operating perf.,[D] derive,Neg recent ROE + high premium CAGR + OP≥Adequate → credited-strain phase,derived
+total_assets_usd,Business profile,pull,Admitted assets ($000) — scale,Statutory
+total_premium_usd,Business profile,pull,Total net premium ($000) — scale,Statutory
+medsup_market_rank,Business profile,pull,Med Sup market share / national rank if available,SNL market share
+prem_<line>,Business profile,pull,"Premium by line ($000): medsup, hosp_indemnity, other_ah, ltc, stc, life_term, life_whole, life_ul_iul, annuity, preneed_final_expense, group, disability, dental_vision, credit, other",Exhibit of Premiums / state pages
+states_licensed,Business profile,pull,Count of states licensed,SNL
+top_state_pct,Business profile,pull,Premium share of largest state (%),Schedule T
+top5_state_pct,Business profile,pull,Premium share of top 5 states (%),Schedule T
+distribution_channels,Business profile,pull,"List: ind-agent/IMO, career/captive, DTC, worksite, BGA, bank/BD",10-K / company / AM Best
+dtc_brand_flag,Business profile,pull,Meaningful direct-to-consumer brand (Y/N),Judgment
+parent_fsr,Business profile,pull,Parent/affiliate rating (franchise/support),AM Best
+hhi_lines,Business profile,[D] derive,Herfindahl on line-of-business % (concentration),derived
+material_line_count,Business profile,[D] derive,Count of lines ≥ 10% of premium,derived
+risk_type_mix,Business profile,[D] derive,Morbidity % / mortality % / market-spread % (lines→risk types),derived
+channel_count,Business profile,[D] derive,Number of material distribution channels,derived

@@ -1,0 +1,56 @@
+rating_unit_name,lead_entity,ownership,stratum,naic_code,domicile_state,fsr,icr,outlook,under_review,bs_assessment,op_assessment,bp_assessment,erm_assessment,rating_action_date,last_action_type,source_url,HINT (confirm — do not trust)
+Wellabe Group,Medico Insurance Company,mutual MHC,core,,,,,,,,,,,,,,subject — A / Strongest / Adequate / Neutral
+Physicians Mutual,Physicians Mutual Insurance Co,mutual MHC,core; transition,,,,,,,,,,,,,,A+ / Strongest / Strong / Neutral; upgraded 11/2025; RBC ~1200%
+Mutual of Omaha,United of Omaha Life Insurance Co,mutual MHC,core,,,,,,,,,,,,,,A+ / Very Strong (BCAR Strongest) / Strong / Favorable; RBC ~423%
+Guarantee Trust Life,Guarantee Trust Life Insurance Co,mutual,core,,,,,,,,,,,,,,A / Strongest / Strong / Limited; RBC ~800%; hosp indemnity+MedSup+STC
+Aflac,Continental American Insurance Co,stock,core; anchor,,,,,,,,,,,,,,A+ / Strongest / Strong / Favorable; US worksite supplemental
+Globe Life,United American Insurance Co,stock,core,,,,,,,,,,,,,,A / Strong / Very Strong / ___; RBC ~316%
+CNO — Bankers Life,Bankers Life & Casualty Co,stock,core,,,,,,,,,,,,,,A / ___ / ___ / ___; senior MedSup/LTC
+CNO — Washington National,Washington National Insurance Co,stock,core,,,,,,,,,,,,,,A / ___; supplemental health
+CNO — Colonial Penn,Colonial Penn Life Insurance Co,stock,core,,,,,,,,,,,,,,___; final expense / DTC
+Aetna/CVS — Continental Life,Continental Life Ins Co of Brentwood,stock,core,,,,,,,,,,,,,,A / ___; large MedSup writer
+Aetna/CVS — American Continental,American Continental Insurance Co,stock,core,,,,,,,,,,,,,,A / ___; MedSup
+Cigna — Loyal American,Loyal American Life Insurance Co,stock,core,,,,,,,,,,,,,,A / ___; MedSup
+Cigna — American Retirement Life,American Retirement Life Insurance Co,stock,core,,,,,,,,,,,,,,A / ___; MedSup
+Cigna — National Health,Cigna National Health Insurance Co,stock,core,,,,,,,,,,,,,,A / ___; supplemental
+Humana,Humana Insurance Co,stock,core,,,,,,,,,,,,,,A / ___; MedSup
+UnitedHealthcare,UnitedHealthcare Insurance Co,stock,core; anchor,,,,,,,,,,,,,,A / ___; AARP MedSup partnership
+Combined Insurance (Chubb),Combined Insurance Co of America,stock,core,,,,,,,,,,,,,,A+ / ___; worksite supplemental
+Lumico (RGA),Lumico Life Insurance Co,stock,core,,,,,,,,,,,,,,___; RGA-backed MedSup growth
+Pekin Life,Pekin Life Insurance Co,stock (mutual-affil),core,,,,,,,,,,,,,,"___; conservative regional MedSup — likely Strongest, verify"
+American National — Standard Life & Accident,Standard Life & Accident Insurance Co,stock (Brookfield),core,,,,,,,,,,,,,,"A / ___; supplemental health, MedSup"
+American National,American National Insurance Co,stock (Brookfield),core,,,,,,,,,,,,,,A / ___; diversified
+Kemper — Reserve National,Reserve National Insurance Co,stock,core,,,,,,,,,,,,,,___; supplemental health
+ManhattanLife — Assurance,ManhattanLife Assurance Co of America,stock,core; low,,,,,,,,,,,,,,B++ / ___; sells in our channels below A-
+ManhattanLife — Western United,Western United Life Assurance Co,stock,low,,,,,,,,,,,,,,B+ / ___; Medigap
+New Era Life,New Era Life Insurance Co,stock,core; low,,,,,,,,,,,,,,___; MedSup + supplemental
+Philadelphia American,Philadelphia American Life Insurance Co,stock,low,,,,,,,,,,,,,,___; MedSup/supplemental
+Government Personnel Mutual,GPM Health & Life Insurance Co,mutual,core,,,,,,,,,,,,,,___; MedSup
+Americo,Americo Financial Life & Annuity Ins Co,stock,core,,,,,,,,,,,,,,___; supplemental/final expense/life
+Atlantic American — Bankers Fidelity,Bankers Fidelity Life Insurance Co,stock,core; transition,,,,,,,,,,,,,,A- / ___; UNDER REVIEW neg 6/2026
+Atlantic American — American Southern,American Southern Insurance Co,stock,transition,,,,,,,,,,,,,,A- / Strong / ___; DOWNGRADED 4/2026 reserves+concentration (P&C sibling)
+Heartland National,Heartland National Life Insurance Co,stock,low,,,,,,,,,,,,,,___; MedSup
+Sentinel Security Life,Sentinel Security Life Insurance Co,stock,low,,,,,,,,,,,,,,___; MedSup
+Everence,Everence Association / Everence Ins,fraternal,core,,,,,,,,,,,,,,___; supplemental/life
+Continental General,Continental General Insurance Co,stock,low,,,,,,,,,,,,,,___; LTC/supplemental — deliberate low-end
+Liberty Bankers,Liberty Bankers Life Insurance Co,stock,core; low,,,,,,,,,,,,,,___; MedSup/annuity/preneed-adjacent
+National Guardian Life,National Guardian Life Insurance Co,mutual,preneed,,,,,,,,,,,,,,A / ___; preneed leader
+Homesteaders Life,Homesteaders Life Co,mutual,preneed,,,,,,,,,,,,,,A- / ___; preneed
+Funeral Directors Life,Funeral Directors Life Insurance Co,stock,preneed,,,,,,,,,,,,,,A- / ___; preneed
+Forethought (Global Atlantic),Forethought Life Insurance Co,stock (KKR),preneed,,,,,,,,,,,,,,___; preneed/annuity
+Security National,Security National Life Insurance Co,stock,preneed,,,,,,,,,,,,,,___; preneed/funeral
+Investors Heritage,Investors Heritage Life Insurance Co,stock (Aquarian),preneed,,,,,,,,,,,,,,___; preneed
+American-Amicable / Trinity,Trinity Life Insurance Co,stock,preneed; low,,,,,,,,,,,,,,___; final expense
+Assurity Life,Assurity Life Insurance Co,mutual,preneed,,,,,,,,,,,,,,"___; conservative mutual, DI/supplemental — likely Strongest, verify"
+USAA Life,USAA Life Insurance Co,stock (recip),anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / ___
+Thrivent,Thrivent Financial for Lutherans,fraternal,anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / ___
+State Farm Life,State Farm Life Insurance Co,mutual-affil,anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / ___
+Northwestern Mutual,Northwestern Mutual Life Insurance Co,mutual,anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / Favorable
+New York Life,New York Life Insurance Co,mutual,anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / Favorable
+MassMutual,Massachusetts Mutual Life Insurance Co,mutual,anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / Favorable
+Guardian Life,Guardian Life Insurance Co of America,mutual,anchor,,,,,,,,,,,,,,A++ / Strongest / ___ / ___; some supplemental
+Citizens Inc — CICA,CICA Life Insurance Co of America,stock,low,,,,,,,,,,,,,,___; supplemental — range
+Kansas City Life,Kansas City Life Insurance Co,stock,low,,,,,,,,,,,,,,___; small diversified — range
+National Western Life,National Western Life Insurance Co,stock,variance,,,,,,,,,,,,,,___; annuity/life — range
+Penn Mutual,Penn Mutual Life Insurance Co,mutual,variance,,,,,,,,,,,,,,___; diversified mutual
+Lincoln Financial,Lincoln National Life Insurance Co,stock,variance,,,,,,,,,,,,,,___; large pressured L&H — Very Strong/Strong variance
