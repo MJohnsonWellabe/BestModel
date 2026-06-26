@@ -150,21 +150,35 @@ const BP_COLOR={"Very Favorable":"#1F4E79","Favorable":"#2E5A88","Neutral":"#5B8
   "Limited":"#E0A458","Very Limited":"#B5402E","":"#AAB2BA"};
 const ICR_SCALE=["aaa","aa+","aa","aa-","a+","a","a-","bbb+","bbb","bbb-","bb+","bb","bb-","b+","b","b-"];
 const BAND_TOL=1; // +/- notches around the point estimate (mirror of notching.BAND_TOLERANCE)
+const STORE_KEY="ambest_pulls_v1"; // localStorage key for loaded pulls (declared early — used at startup)
+// FSR is the actual letter rating people read; map ICR -> FSR (mirror of notching.ICR_TO_FSR)
+const FSR_SCALE=["A++","A+","A","A-","B++","B+","B","B-","C++","C+","C","C-","D"];
+const ICR_TO_FSR={aaa:"A++","aa+":"A++",aa:"A+","aa-":"A+","a+":"A",a:"A","a-":"A-",
+  "bbb+":"B++",bbb:"B++","bbb-":"B+","bb+":"B",bb:"B","bb-":"B-","b+":"C++",b:"C+","b-":"C+",
+  "ccc+":"C","ccc":"C","ccc-":"C",cc:"C-",c:"D"};
+const toFsr=icr=>ICR_TO_FSR[(icr||"").trim().toLowerCase()]||null;
+const fsrIdx=f=>FSR_SCALE.indexOf((f||"").trim());
 
-let CARRIERS=[], IS_LIVE=false, VIEW="bs";   // real data only — loaded via ./data.json or the +Data tab
+let CARRIERS=[], LOADED=[], IS_LIVE=false, VIEW="bs";   // real data only — loaded via ./data.json or the +Data tab
 const FILT={stratum:new Set(),ownership:new Set(),anchors:false,labeled:false};
 
 /* ============================ data loading ============================ */
-initInput();
-fetch("./data.json").then(r=>r.ok?r.json():null).then(j=>{
-  if(j&&j.carriers&&j.carriers.length){
-    CARRIERS=j.carriers; IS_LIVE=true;
-    const labeled=j.carriers.filter(c=>c.bs_assessment).length;
-    const b=document.getElementById("dataBadge"); b.className="badge live";
-    b.textContent="live data · "+CARRIERS.length+" carriers · "+labeled+" rated";
-  }
-  buildFilters(); render();
-}).catch(()=>{ buildFilters(); render(); });
+/* boot() runs at the very end of the script (see final line) so every const helper
+ * — LAYOUT, CFG, the view fns — is initialized before the first render(). */
+function boot(){
+  initInput();
+  const cached=loadPersisted();                 // pulls you loaded earlier, kept across reloads
+  if(cached){ CARRIERS=cached; LOADED=cached; IS_LIVE=true; liveBadge(cached); buildFilters(); render(); return; }
+  fetch("./data.json").then(r=>r.ok?r.json():null).then(j=>{
+    if(j&&j.carriers&&j.carriers.length){
+      CARRIERS=j.carriers; IS_LIVE=true;
+      const labeled=j.carriers.filter(c=>c.bs_assessment).length;
+      const b=document.getElementById("dataBadge"); b.className="badge live";
+      b.textContent="live data · "+CARRIERS.length+" carriers · "+labeled+" rated";
+    }
+    buildFilters(); render();
+  }).catch(()=>{ buildFilters(); render(); });
+}
 
 /* ============================ helpers ============================ */
 const fmtUsd=v=>v==null?"—":("$"+(v/1e6).toFixed(v<1e6?2:1)+"B").replace("$0.","$0.");
@@ -226,6 +240,8 @@ function render(){
   document.getElementById("findingCard").style.display=isInput?"none":"block";
   document.querySelector(".actionbar").style.display=isInput?"none":"flex";
   if(!isInput && !CARRIERS.length){ emptyState(); return; }
+  if(!isInput){ const ch=document.getElementById("chart");   // clear any leftover empty-state HTML
+    if(!ch.querySelector(".plotly")) ch.innerHTML=""; }
   ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch,input:viewInput}[VIEW])();
 }
 function emptyState(){
@@ -371,49 +387,47 @@ function viewBP(){
 
 /* ============================ VIEW 4 — Notching ============================ */
 function viewNotch(){
-  const idx=s=>{const i=ICR_SCALE.indexOf((s||"").trim().toLowerCase());return i<0?null:i;};
-  const data=active().filter(c=>c.notching&&c.notching.predicted_icr&&c.icr&&idx(c.icr)!=null);
-  // verdict per carrier
+  // Work in FSR (the actual letter rating A++…D), converting the model's ICR band to FSR.
+  const data=active().filter(c=>c.notching&&c.notching.predicted_icr&&(c.fsr||c.icr));
   const pts=data.map(c=>{
-    const nn=c.notching, ay=idx(c.icr);
-    const si=nn.strong_idx!=null?nn.strong_idx:idx(nn.predicted_strong);
-    const wi=nn.weak_idx!=null?nn.weak_idx:idx(nn.predicted_weak);
-    const pIdx=idx(nn.predicted_icr);
-    const inR=(nn.in_range!=null)?nn.in_range:(ay>=si&&ay<=wi);
+    const nn=c.notching;
+    const pIdx=fsrIdx(toFsr(nn.predicted_icr));
+    let si=fsrIdx(toFsr(nn.predicted_strong)), wi=fsrIdx(toFsr(nn.predicted_weak));
+    if(si>wi){const t=si;si=wi;wi=t;}                         // strong end = lower FSR index
+    const ay=fsrIdx(c.fsr)>=0?fsrIdx(c.fsr):fsrIdx(toFsr(c.icr)); // actual letter rating
+    const inR=(ay>=si&&ay<=wi);
     const basis=(c.rating_basis||"standalone");
     return {c, pIdx, si, wi, ay, basis, verdict: inR?"in":(basis==="group-member"?"group":"resid")};
-  }).filter(p=>p.pIdx!=null);
-  // sort weakest→strongest predicted so the forest reads top(strong)→bottom; Wellabe forced visible
-  pts.sort((a,b)=> b.pIdx-a.pIdx || (a.c.rating_unit_name<b.c.rating_unit_name?-1:1));
+  }).filter(p=>p.pIdx>=0 && p.ay>=0);
+  pts.sort((a,b)=> b.ay-a.ay || (a.c.rating_unit_name<b.c.rating_unit_name?-1:1)); // by actual rating
   const names=pts.map(p=>p.c.rating_unit_name);
   const COL={in:"#2E5A88",group:"#E0A458",resid:"#B5402E"};
-  // predicted ±1 band as a horizontal whisker (error bar on the predicted point)
-  const bandTrace={x:pts.map(p=>p.pIdx),y:names,customdata:pts.map(p=>p.c),type:"scatter",mode:"markers",
-    marker:{symbol:"line-ns-open",size:1,color:"rgba(0,0,0,0)"},
+  // predicted band as a horizontal whisker (error bar spanning the FSR band)
+  const bandTrace={x:pts.map(p=>(p.si+p.wi)/2),y:names,customdata:pts.map(p=>p.c),type:"scatter",mode:"markers",
+    marker:{size:1,color:"rgba(0,0,0,0)"},
     error_x:{type:"data",symmetric:false,
-      array:pts.map(p=>p.wi-p.pIdx),arrayminus:pts.map(p=>p.pIdx-p.si),
-      color:"#9AA7B2",thickness:6,width:0},
-    hovertemplate:"%{y}<br>predicted band ±1 notch<extra></extra>",showlegend:false};
-  // actual ICR marker, colored by verdict
+      array:pts.map(p=>p.wi-(p.si+p.wi)/2),arrayminus:pts.map(p=>(p.si+p.wi)/2-p.si),
+      color:"#9AA7B2",thickness:7,width:3},
+    hovertemplate:"%{y}<br>predicted rating band<extra></extra>",showlegend:false};
   const mk=(key)=>{const a=pts.filter(p=>p.verdict===key);
     return {x:a.map(p=>p.ay),y:a.map(p=>p.c.rating_unit_name),customdata:a.map(p=>p.c),
       type:"scatter",mode:"markers",marker:{size:11,color:COL[key],line:{width:.5,color:"#fff"}},
-      hovertemplate:"%{y}<br>actual %{x}<extra></extra>",showlegend:false};};
+      hovertemplate:"%{y}<br>actual FSR %{x}<extra></extra>",showlegend:false};};
   const traces=[bandTrace,mk("in"),mk("group"),mk("resid")];
   const w=pts.find(p=>p.c.is_wellabe);
   if(w)traces.push({x:[w.ay],y:[w.c.rating_unit_name],customdata:[w.c],type:"scatter",mode:"markers",
     marker:{size:16,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
     hovertemplate:"%{y} (Wellabe)<extra></extra>",showlegend:false});
   const span=[Math.max(0,Math.min(...pts.map(p=>Math.min(p.si,p.ay)))-1),
-              Math.min(ICR_SCALE.length-1,Math.max(...pts.map(p=>Math.max(p.wi,p.ay)))+1)];
+              Math.min(FSR_SCALE.length-1,Math.max(...pts.map(p=>Math.max(p.wi,p.ay)))+1)];
   const H=Math.max(360, pts.length*22+60);
   document.getElementById("chart").style.height=H+"px";
   Plotly.newPlot("chart",traces,Object.assign(LAYOUT({
-    xaxis:{tickvals:ICR_SCALE.map((_,i)=>i),ticktext:ICR_SCALE,side:"top",gridcolor:"#ECE8DD",range:span},
+    xaxis:{tickvals:FSR_SCALE.map((_,i)=>i),ticktext:FSR_SCALE,side:"top",gridcolor:"#ECE8DD",range:span},
     yaxis:{automargin:true,tickfont:{size:9},gridcolor:"#F0EDE4"}
   }),{margin:{l:8,r:12,t:34,b:10}}),CFG).then(bindTap);
   document.getElementById("legend").innerHTML=
-    `<span><i style="background:#9AA7B2"></i>predicted ±1-notch band</span>`+
+    `<span><i style="background:#9AA7B2"></i>predicted rating band</span>`+
     `<span><i style="background:#2E5A88"></i>actual in band</span>`+
     `<span><i style="background:#E0A458"></i>group-aligned</span>`+
     `<span><i style="background:#B5402E"></i>residual</span><span class="wmark">◆ Wellabe</span>`;
@@ -421,11 +435,11 @@ function viewNotch(){
         nR=pts.filter(p=>p.verdict==="resid").length;
   const sa=pts.filter(p=>p.basis==="standalone"), saIn=sa.filter(p=>p.verdict==="in").length;
   document.getElementById("finding").innerHTML=
-    `Each grey bar is the reconstruction's <b>±1-notch</b> prediction; the dot is the actual ICR. `+
-    `<b>${nIn}/${pts.length}</b> land in band. Of carriers rated standalone, <b>${saIn}/${sa.length}</b> fall in band; `+
-    `the <b>${nG}</b> amber points are <b>group-aligned</b> (rated at the parent/group level), and `+
-    `${nR} red are genuine residuals — the committee-judgment cases.`;
-  document.getElementById("ncount").textContent="n = "+pts.length+" carriers (predicted band vs actual ICR)";
+    `Each grey bar is the reconstruction's predicted <b>FSR</b> band; the dot is the carrier's actual `+
+    `rating. <b>${nIn}/${pts.length}</b> land in band. Of carriers rated standalone, <b>${saIn}/${sa.length}</b> `+
+    `fall in band; the <b>${nG}</b> amber points are <b>group-aligned</b> (rated at the parent/group level), `+
+    `and ${nR} red are genuine residuals — the committee-judgment cases.`;
+  document.getElementById("ncount").textContent="n = "+pts.length+" carriers (predicted band vs actual FSR)";
   if(w)showDetail(w.c);
 }
 
@@ -550,7 +564,6 @@ function recordFromPull(pull){
   return rec;
 }
 
-let LOADED=[];
 async function handleFiles(files){
   const log=document.getElementById("loadLog"); const recs=LOADED.slice();
   for(const f of files){
@@ -570,11 +583,20 @@ async function handleFiles(files){
   LOADED=recs; setLoaded(LOADED); viewInput();
 }
 function appendLog(html){const l=document.getElementById("loadLog");l.innerHTML+=html+"<br>";}
+function liveBadge(recs){
+  const lbl=recs.filter(c=>c.bs_assessment).length;
+  const b=document.getElementById("dataBadge"); b.className="badge live";
+  b.textContent="loaded "+recs.length+" pull"+(recs.length===1?"":"s")+" · "+lbl+" rated";
+}
 function setLoaded(recs){
-  if(recs.length){ CARRIERS=recs; IS_LIVE=true; buildFilters();
-    const lbl=recs.filter(c=>c.bs_assessment).length;
-    const b=document.getElementById("dataBadge"); b.className="badge live";
-    b.textContent="loaded "+recs.length+" pull"+(recs.length>1?"s":"")+" · "+lbl+" rated"; }
+  if(!recs.length) return;
+  CARRIERS=recs; LOADED=recs; IS_LIVE=true; buildFilters(); liveBadge(recs);
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(recs)); }catch(e){} // persist across reloads (hosted)
+  render();  // refresh whatever view is showing — fixes "still says no data" after a load
+}
+function loadPersisted(){
+  try{ const s=localStorage.getItem(STORE_KEY); if(s){const a=JSON.parse(s); if(Array.isArray(a)&&a.length)return a;} }catch(e){}
+  return null;
 }
 function viewInput(){
   const stat=document.getElementById("loadStat"), log=document.getElementById("loadLog");
@@ -599,6 +621,7 @@ function initInput(){
   drop.addEventListener("drop",e=>{const fs=[...(e.dataTransfer.files||[])].filter(f=>/\.xlsx$/i.test(f.name));
     if(fs.length){document.getElementById("loadLog").innerHTML="";handleFiles(fs);}});
   document.getElementById("clearData").onclick=()=>{LOADED=[];CARRIERS=[];IS_LIVE=false;buildFilters();
+    try{localStorage.removeItem(STORE_KEY);}catch(e){}
     const b=document.getElementById("dataBadge");b.className="badge demo";b.textContent="no data — load in ＋ Data";viewInput();render();};
   document.getElementById("goCharts").onclick=()=>{document.querySelector('#tabs button[data-view="bs"]').click();};
 }
@@ -619,6 +642,7 @@ function notchPredict(bs,op,bp,erm,icr){
   return {predicted_icr:ICR_SCALE[pIdx], predicted_strong:ICR_SCALE[lo], predicted_weak:ICR_SCALE[hi],
           strong_idx:lo, weak_idx:hi, in_range:inRange, notches:{total:tot}};
 }
+boot();  // start the app (after all declarations)
 </script>
 </body>
 </html>
