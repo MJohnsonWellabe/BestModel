@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AM Best Rating Decoder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="./plotly.min.js" charset="utf-8"></script>
+<style>
+  :root{
+    --ink:#0B1C2C; --accent:#2E5A88; --paper:#F7F5EF; --card:#FFFFFF;
+    --line:#D8D2C4; --muted:#5C6B78; --wellabe:#C0392B; --good:#2E7D5B;
+    --t-strongest:#1F4E79; --t-verystrong:#2E5A88; --t-strong:#5B8AB5;
+    --t-adequate:#E0A458; --t-marginal:#D9763C; --t-weak:#B5402E; --t-na:#AAB2BA;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  header{padding:14px 16px 8px;border-bottom:1px solid var(--line);background:var(--card)}
+  h1{font-family:'EB Garamond',Georgia,serif;font-size:21px;margin:0;letter-spacing:.2px}
+  .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-top:6px}
+  .badge.demo{background:#F1E6C8;color:#7A5A12} .badge.live{background:#D8EEE2;color:#1C5C40}
+  /* sticky segmented control */
+  nav{position:sticky;top:0;z-index:20;background:var(--paper);padding:8px 10px;
+    border-bottom:1px solid var(--line);display:flex;gap:4px}
+  nav button{flex:1;font:inherit;font-size:12px;font-weight:500;padding:9px 4px;border:1px solid var(--line);
+    background:var(--card);color:var(--muted);border-radius:9px;cursor:pointer;line-height:1.1}
+  nav button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  main{padding:12px 12px 96px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+  .chart{width:100%;height:62vh;min-height:360px}
+  .finding{font-size:14.5px;line-height:1.5;margin:2px 2px 0}
+  .finding b{color:var(--accent)}
+  .n{font-size:11.5px;color:var(--muted);margin-top:6px}
+  details{margin-top:8px;font-size:13px} summary{cursor:pointer;color:var(--accent);font-weight:500}
+  details .row{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:4px 0}
+  details .row span:first-child{color:var(--muted)}
+  /* bottom action bar */
+  .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:8px;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--card);
+    border-top:1px solid var(--line)}
+  .actionbar button{flex:1;font:inherit;font-size:13px;font-weight:600;padding:11px;border-radius:10px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+  .actionbar button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  /* bottom sheet */
+  .sheet-bg{position:fixed;inset:0;background:rgba(11,28,44,.45);z-index:40;display:none}
+  .sheet-bg.open{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--card);
+    border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .22s ease;max-height:82vh;overflow:auto}
+  .sheet.open{transform:translateY(0)}
+  .sheet h3{margin:0 0 10px;font-family:'EB Garamond',serif;font-size:18px}
+  .grp{margin:10px 0} .grp .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12.5px;padding:7px 11px;border:1px solid var(--line);border-radius:20px;background:var(--paper);cursor:pointer}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .toggle{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+  .switch{width:46px;height:26px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:.2s}
+  .switch.on{background:var(--good)} .switch i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+  .switch.on i{left:23px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin:8px 2px 0;font-size:11.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .wmark{font-size:11.5px;color:var(--wellabe);font-weight:600}
+  .approx{font-size:11px;color:var(--muted);font-style:italic;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>AM Best Rating Decoder</h1>
+  <div class="sub">How capital, earnings &amp; franchise map to the assessment blocks · Wellabe OCA</div>
+  <span id="dataBadge" class="badge demo">demo data</span>
+</header>
+
+<nav id="tabs">
+  <button data-view="bs" class="active">Balance&nbsp;Sheet</button>
+  <button data-view="op">Operating</button>
+  <button data-view="bp">Business&nbsp;Profile</button>
+  <button data-view="notch">Notching</button>
+</nav>
+
+<main>
+  <div class="card">
+    <div id="chart" class="chart"></div>
+    <div id="legend" class="legend"></div>
+  </div>
+  <div class="card">
+    <div id="finding" class="finding"></div>
+    <div id="ncount" class="n"></div>
+    <details id="detailWrap">
+      <summary>Tap a point for that carrier · or open the table</summary>
+      <div id="detail" style="margin-top:8px"></div>
+    </details>
+  </div>
+</main>
+
+<div class="actionbar">
+  <button id="filterBtn">Filters</button>
+  <button id="exportBtn" class="primary">Export figure + data</button>
+</div>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <h3>Filters</h3>
+  <div class="grp"><div class="lbl">Stratum</div><div class="chips" id="f-stratum"></div></div>
+  <div class="grp"><div class="lbl">Ownership</div><div class="chips" id="f-ownership"></div></div>
+  <div class="toggle"><div>Hide fortress anchors (A++ mutuals)</div><div class="switch" id="f-anchors"><i></i></div></div>
+  <div class="toggle"><div>Show only carriers with assessment labels</div><div class="switch" id="f-labeled"><i></i></div></div>
+  <div style="margin-top:14px;display:flex;gap:8px">
+    <button class="chip" id="f-reset" style="flex:1;text-align:center">Reset</button>
+    <button class="chip on" id="f-apply" style="flex:1;text-align:center">Done</button>
+  </div>
+</div>
+
+<script>
+/* ---- assessment ordinal scales + colors ---- */
+const BS_TIERS=["Strongest","Very Strong","Strong","Adequate","Weak","Very Weak"];
+const OP_TIERS=["Very Strong","Strong","Adequate","Marginal","Weak","Very Weak"];
+const BP_TIERS=["Very Favorable","Favorable","Neutral","Limited","Very Limited"];
+const BS_COLOR={"Strongest":"#1F4E79","Very Strong":"#2E5A88","Strong":"#5B8AB5",
+  "Adequate":"#E0A458","Weak":"#B5402E","Very Weak":"#7A2418","":"#AAB2BA"};
+const OP_COLOR={"Very Strong":"#1F4E79","Strong":"#2E5A88","Adequate":"#5B8AB5",
+  "Marginal":"#E0A458","Weak":"#B5402E","Very Weak":"#7A2418","":"#AAB2BA"};
+const BP_COLOR={"Very Favorable":"#1F4E79","Favorable":"#2E5A88","Neutral":"#5B8AB5",
+  "Limited":"#E0A458","Very Limited":"#B5402E","":"#AAB2BA"};
+const ICR_SCALE=["aaa","aa+","aa","aa-","a+","a","a-","bbb+","bbb","bbb-","bb+","bb","bb-","b+","b","b-"];
+
+/* embedded DEMO dataset — representative, clearly-labeled synthetic data so all four
+ * views are reviewable before the real data.json is populated. The tool fetches
+ * ./data.json on load and switches to it once it carries enough assessment-labeled rows. */
+const DEMO = buildDemo();
+let CARRIERS=DEMO, IS_LIVE=false, VIEW="bs";
+const FILT={stratum:new Set(),ownership:new Set(),anchors:false,labeled:false};
+
+/* ============================ data loading ============================ */
+fetch("./data.json").then(r=>r.ok?r.json():null).then(j=>{
+  if(j&&j.carriers&&j.carriers.length){
+    const labeled=j.carriers.filter(c=>c.bs_assessment);
+    // use live data only when it carries enough labeled carriers to be worth showing
+    if(labeled.length>=8){ CARRIERS=j.carriers; IS_LIVE=true;
+      document.getElementById("dataBadge").className="badge live";
+      document.getElementById("dataBadge").textContent="live data · "+labeled.length+" rated carriers";
+    } else {
+      document.getElementById("dataBadge").textContent="demo data ("+labeled.length+" live rows pending)";
+    }
+  }
+  buildFilters(); render();
+}).catch(()=>{ buildFilters(); render(); });
+
+/* ============================ helpers ============================ */
+const fmtUsd=v=>v==null?"—":("$"+(v/1e6).toFixed(v<1e6?2:1)+"B").replace("$0.","$0.");
+const money=v=>v==null?"—":"$"+(v/1000).toLocaleString(undefined,{maximumFractionDigits:1})+"M";
+const pct=v=>v==null?"—":v+"%";
+function active(){
+  return CARRIERS.filter(c=>{
+    if(FILT.anchors && /anchor/.test(c.stratum||"")) return false;
+    if(FILT.labeled && !c.bs_assessment) return false;
+    if(FILT.stratum.size){ const tags=(c.stratum||"").split(/[;,]/).map(s=>s.trim());
+      if(!tags.some(t=>FILT.stratum.has(t))) return false; }
+    if(FILT.ownership.size && !FILT.ownership.has((c.ownership||"").split(" ")[0])) return false;
+    return true;
+  });
+}
+function wellabe(list){return list.find(c=>c.is_wellabe);}
+
+/* ============================ filters UI ============================ */
+function buildFilters(){
+  const strata=new Set(), owns=new Set();
+  CARRIERS.forEach(c=>{ (c.stratum||"").split(/[;,]/).forEach(s=>{s=s.trim();if(s)strata.add(s)});
+    const o=(c.ownership||"").split(" ")[0]; if(o)owns.add(o); });
+  const mk=(host,set,store)=>{ host.innerHTML="";
+    [...set].sort().forEach(v=>{ const b=document.createElement("div"); b.className="chip"; b.textContent=v;
+      b.onclick=()=>{ b.classList.toggle("on"); b.classList.contains("on")?store.add(v):store.delete(v); render(); };
+      host.appendChild(b); }); };
+  mk(document.getElementById("f-stratum"),strata,FILT.stratum);
+  mk(document.getElementById("f-ownership"),owns,FILT.ownership);
+}
+const sheet=document.getElementById("sheet"),sheetBg=document.getElementById("sheetBg");
+const openSheet=()=>{sheet.classList.add("open");sheetBg.classList.add("open");};
+const closeSheet=()=>{sheet.classList.remove("open");sheetBg.classList.remove("open");};
+document.getElementById("filterBtn").onclick=openSheet;
+sheetBg.onclick=closeSheet;
+document.getElementById("f-apply").onclick=closeSheet;
+function toggle(id,key){const el=document.getElementById(id);el.onclick=()=>{el.classList.toggle("on");FILT[key]=el.classList.contains("on");render();};}
+toggle("f-anchors","anchors"); toggle("f-labeled","labeled");
+document.getElementById("f-reset").onclick=()=>{
+  FILT.stratum.clear();FILT.ownership.clear();FILT.anchors=false;FILT.labeled=false;
+  document.querySelectorAll(".chip.on").forEach(c=>{if(c.id!=="f-apply")c.classList.remove("on")});
+  document.getElementById("f-anchors").classList.remove("on");
+  document.getElementById("f-labeled").classList.remove("on");
+  render();
+};
+
+/* ============================ tabs ============================ */
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); VIEW=b.dataset.view; render();
+});
+
+/* ============================ render dispatch ============================ */
+function render(){
+  document.querySelectorAll(".approx").forEach(e=>e.remove()); // clear per-view footnotes
+  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch}[VIEW])();
+}
+
+function legend(map,tiers){
+  const el=document.getElementById("legend");
+  el.innerHTML=tiers.map(t=>`<span><i style="background:${map[t]}"></i>${t}</span>`).join("")
+    +`<span class="wmark">◆ Wellabe</span>`;
+}
+const LAYOUT=extra=>Object.assign({
+  margin:{l:48,r:12,t:10,b:42},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+  font:{family:"DM Sans, sans-serif",size:12,color:"#0B1C2C"},showlegend:false,hovermode:"closest",
+  dragmode:false
+},extra);
+const CFG={responsive:true,displayModeBar:false};
+
+/* tap a point -> show that carrier row */
+function bindTap(div){ div.on("plotly_click",e=>{ const p=e.points[0]; const c=p.customdata;
+  if(!c) return; showDetail(c); document.getElementById("detailWrap").open=true;
+  document.getElementById("detailWrap").scrollIntoView({behavior:"smooth",block:"center"}); }); }
+function showDetail(c){
+  const rows=[["Rating unit",c.rating_unit_name],["FSR / ICR",(c.fsr||"—")+" / "+(c.icr||"—")],
+    ["Balance sheet",c.bs_assessment||"—"],["Operating",c.op_assessment||"—"],
+    ["Business profile",c.bp_assessment||"—"],["ERM",c.erm_assessment||"—"],
+    ["RBC (CAL)",pct(c.rbc_cal_pct)],["Higher-risk leverage*",pct(c.higher_risk_leverage_partial)],
+    ["5-yr ROE (mean)",c.roe_5yr_mean==null?"—":c.roe_5yr_mean+"%"],
+    ["A&H combined",c.ah_combined_ratio==null?"—":c.ah_combined_ratio+"%"],
+    ["Total assets",money(c.total_assets_usd)],["Segment HHI",c.hhi_segments==null?"—":c.hhi_segments],
+    ["Stratum",c.stratum||"—"]];
+  document.getElementById("detail").innerHTML=rows.map(r=>`<div class="row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+}
+
+/* ============================ VIEW 1 — Balance sheet ============================ */
+function viewBS(){
+  const data=active().filter(c=>c.rbc_cal_pct!=null && c.higher_risk_leverage_partial!=null);
+  const traces=BS_TIERS.concat([""]).map(t=>{
+    const g=data.filter(c=>(c.bs_assessment||"")===t && !c.is_wellabe);
+    return {x:g.map(c=>c.rbc_cal_pct),y:g.map(c=>c.higher_risk_leverage_partial),
+      customdata:g,text:g.map(c=>c.rating_unit_name),type:"scatter",mode:"markers",
+      marker:{size:11,color:BS_COLOR[t],line:{width:.5,color:"#fff"}},
+      hovertemplate:"%{text}<br>RBC %{x}% · HRL %{y}%<extra></extra>"};
+  });
+  const w=wellabe(data);
+  if(w)traces.push({x:[w.rbc_cal_pct],y:[w.higher_risk_leverage_partial],customdata:[w],
+    text:[w.rating_unit_name],type:"scatter",mode:"markers",
+    marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
+    hovertemplate:"%{text} (Wellabe)<br>RBC %{x}% · HRL %{y}%<extra></extra>"});
+  Plotly.newPlot("chart",traces,LAYOUT({
+    xaxis:{title:"RBC ratio — CAL basis (%)",type:"log",gridcolor:"#ECE8DD",zeroline:false},
+    yaxis:{title:"Higher-risk asset leverage* (% of C&S)",gridcolor:"#ECE8DD",zeroline:false}
+  }),CFG).then(bindTap);
+  legend(BS_COLOR,BS_TIERS);
+  const strongest=data.filter(c=>c.bs_assessment==="Strongest");
+  const lo=strongest.length?Math.min(...strongest.map(c=>c.rbc_cal_pct)):null;
+  document.getElementById("finding").innerHTML=
+    `Capital alone doesn't set the tier. <b>Strongest</b> balance sheets are observed all the way down to `+
+    `<b>~${lo?Math.round(lo):"—"}% RBC</b> — what separates tiers at equal capital is <b>asset risk</b> `+
+    `(the y-axis). Two carriers at the same RBC land in different tiers when higher-risk leverage diverges.`+
+    (w?` Wellabe (◆) sits at ${Math.round(w.rbc_cal_pct)}% RBC.`:``);
+  document.getElementById("ncount").textContent="n = "+data.length+" carriers with RBC + asset data"+(IS_LIVE?"":" · DEMO");
+  document.querySelector(".approx")?.remove();
+  const ap=document.createElement("div");ap.className="approx";
+  ap.textContent="* Higher-risk leverage is partial (below-IG bonds + common stock); Schedule BA / real estate added when the supplemental pull lands.";
+  document.getElementById("legend").after(ap);
+  if(w)showDetail(w);
+}
+
+/* ============================ VIEW 2 — Operating ============================ */
+function viewOP(){
+  const data=active().filter(c=>c.roe_5yr_mean!=null && c.op_assessment);
+  const traces=OP_TIERS.map(t=>{
+    const g=data.filter(c=>c.op_assessment===t);
+    return {y:g.map(c=>c.roe_5yr_mean),x:g.map(()=>t),customdata:g,text:g.map(c=>c.rating_unit_name),
+      type:"box",boxpoints:"all",jitter:.6,pointpos:0,name:t,
+      marker:{size:8,color:OP_COLOR[t]},line:{color:OP_COLOR[t]},fillcolor:"rgba(0,0,0,0)",
+      hovertemplate:"%{text}<br>5-yr ROE %{y}%<extra></extra>"};
+  }).filter(t=>t.y.length);
+  const w=wellabe(data);
+  if(w)traces.push({x:[w.op_assessment],y:[w.roe_5yr_mean],customdata:[w],text:[w.rating_unit_name],
+    type:"scatter",mode:"markers",marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
+    hovertemplate:"%{text} (Wellabe)<br>5-yr ROE %{y}%<extra></extra>"});
+  Plotly.newPlot("chart",traces,LAYOUT({
+    xaxis:{title:"Operating-performance assessment",categoryorder:"array",categoryarray:OP_TIERS,gridcolor:"#ECE8DD"},
+    yaxis:{title:"5-yr mean ROE (%)",gridcolor:"#ECE8DD",zeroline:true,zerolinecolor:"#C9BFA8"}
+  }),CFG).then(bindTap);
+  legend(OP_COLOR,OP_TIERS);
+  const strain=data.filter(c=>c.roe_5yr_mean<0 && /Adequate|Strong/.test(c.op_assessment||""));
+  document.getElementById("finding").innerHTML=
+    `Operating performance tracks earnings <i>relative to peers</i>, not the raw number. The telling cases are `+
+    `<b>growth-strain</b> carriers — <b>${strain.length}</b> here run negative 5-yr ROE yet are held at `+
+    `<b>Adequate or better</b>, because AM Best credits new-business strain pending the projected turn. `+
+    `That is the bucket Wellabe lives in.`;
+  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers"+(IS_LIVE?"":" · DEMO");
+  if(w)showDetail(w);
+}
+
+/* ============================ VIEW 3 — Business profile ============================ */
+function viewBP(){
+  const data=active().filter(c=>c.total_assets_usd!=null && c.hhi_segments!=null && c.bp_assessment);
+  const traces=BP_TIERS.map(t=>{
+    const g=data.filter(c=>c.bp_assessment===t && !c.is_wellabe);
+    return {x:g.map(c=>c.total_assets_usd/1000),y:g.map(c=>c.hhi_segments),customdata:g,
+      text:g.map(c=>c.rating_unit_name),type:"scatter",mode:"markers",name:t,
+      marker:{size:g.map(c=>10+4*(c.material_segment_count||1)),color:BP_COLOR[t],line:{width:.5,color:"#fff"}},
+      hovertemplate:"%{text}<br>assets $%{x:.0f}M · HHI %{y}<extra></extra>"};
+  });
+  const w=wellabe(data);
+  if(w)traces.push({x:[w.total_assets_usd/1000],y:[w.hhi_segments],customdata:[w],text:[w.rating_unit_name],
+    type:"scatter",mode:"markers",marker:{size:22,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
+    hovertemplate:"%{text} (Wellabe)<extra></extra>"});
+  Plotly.newPlot("chart",traces,LAYOUT({
+    xaxis:{title:"Total assets ($M, log)",type:"log",gridcolor:"#ECE8DD"},
+    yaxis:{title:"Concentration — segment HHI (1 = single line)",gridcolor:"#ECE8DD",range:[0,1.05]}
+  }),CFG).then(bindTap);
+  legend(BP_COLOR,BP_TIERS);
+  document.getElementById("finding").innerHTML=
+    `<b>Favorable</b> requires scale <i>and</i> a genuine second risk type beyond the core niche — high up `+
+    `and toward the left (diversified). <b>Neutral</b> is the ceiling for a single-market specialist no matter `+
+    `how many products are stacked inside that market; a Strongest balance sheet does not buy franchise breadth.`;
+  document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · bubble = material-line count"+(IS_LIVE?"":" · DEMO");
+  document.querySelector(".approx")?.remove();
+  const ap=document.createElement("div");ap.className="approx";
+  ap.textContent="HHI computed on coarse Life/Annuity/A&H segments; refines to line-of-business once the premium-by-line supplemental pull lands.";
+  document.getElementById("legend").after(ap);
+  if(w)showDetail(w);
+}
+
+/* ============================ VIEW 4 — Notching ============================ */
+function viewNotch(){
+  const data=active().filter(c=>c.notching&&c.notching.predicted_icr&&c.icr);
+  const idx=s=>{const i=ICR_SCALE.indexOf((s||"").trim().toLowerCase());return i<0?null:i;};
+  const pts=data.map(c=>({c,px:idx(c.notching.predicted_icr),ay:idx(c.icr)})).filter(p=>p.px!=null&&p.ay!=null);
+  const onDiag=pts.filter(p=>Math.abs(p.px-p.ay)<=1), off=pts.filter(p=>Math.abs(p.px-p.ay)>1);
+  const mk=(arr,color,size)=>({x:arr.map(p=>p.px),y:arr.map(p=>p.ay),customdata:arr.map(p=>p.c),
+    text:arr.map(p=>p.c.rating_unit_name),type:"scatter",mode:arr===off?"markers+text":"markers",
+    textposition:"top center",textfont:{size:9,color:"#5C6B78"},
+    marker:{size:size,color:color,line:{width:.5,color:"#fff"}},
+    hovertemplate:"%{text}<br>predicted %{x}<br>actual %{y}<extra></extra>"});
+  const diagTrace={x:[0,15],y:[0,15],type:"scatter",mode:"lines",line:{dash:"dot",color:"#C9BFA8",width:1},hoverinfo:"skip"};
+  const traces=[diagTrace,mk(onDiag,"#2E5A88",10),mk(off,"#D9763C",12)];
+  const w=pts.find(p=>p.c.is_wellabe);
+  if(w)traces.push({x:[w.px],y:[w.ay],customdata:[w.c],text:[w.c.rating_unit_name],type:"scatter",mode:"markers",
+    marker:{size:20,color:"#C0392B",symbol:"diamond",line:{width:1.5,color:"#fff"}},
+    hovertemplate:"%{text} (Wellabe)<extra></extra>"});
+  Plotly.newPlot("chart",traces,LAYOUT({
+    xaxis:{title:"Predicted ICR (baseline + notches)",tickvals:ICR_SCALE.map((_,i)=>i),ticktext:ICR_SCALE,
+      tickangle:-45,gridcolor:"#ECE8DD",range:[-.5,Math.min(13,ICR_SCALE.length-1)]},
+    yaxis:{title:"Actual ICR",tickvals:ICR_SCALE.map((_,i)=>i),ticktext:ICR_SCALE,
+      gridcolor:"#ECE8DD",range:[-.5,Math.min(13,ICR_SCALE.length-1)],autorange:"reversed"}
+  }),CFG).then(bindTap);
+  document.getElementById("legend").innerHTML=
+    `<span><i style="background:#2E5A88"></i>within 1 notch</span>`+
+    `<span><i style="background:#D9763C"></i>residual &gt;1 notch</span>`+
+    `<span class="wmark">◆ Wellabe</span>`;
+  const within=Math.round(100*onDiag.length/Math.max(pts.length,1));
+  document.getElementById("finding").innerHTML=
+    `Rebuilding each rating from the published baseline + notch tables reconciles <b>${within}%</b> of carriers `+
+    `within a single notch. The <b>${off.length}</b> residuals (orange) are where committee judgment or the `+
+    `comprehensive adjustment moved the result — the most revealing cases for the paper.`;
+  document.getElementById("ncount").textContent="n = "+pts.length+" carriers with predicted + actual ICR"+(IS_LIVE?"":" · DEMO");
+  if(w)showDetail(w.c);
+}
+
+/* ============================ export ============================ */
+document.getElementById("exportBtn").onclick=async()=>{
+  const names={bs:"BS-2_rbc_vs_assetrisk",op:"OP-1_roe_by_assessment",bp:"BP-1_assets_vs_hhi",notch:"N-1_predicted_vs_actual"};
+  const base=names[VIEW];
+  await Plotly.downloadImage("chart",{format:"svg",filename:base,height:720,width:1000});
+  // CSV of the active frame for this view
+  const cols=["rating_unit_name","fsr","icr","bs_assessment","op_assessment","bp_assessment","erm_assessment",
+    "rbc_cal_pct","higher_risk_leverage_partial","roe_5yr_mean","ah_combined_ratio","total_assets_usd","hhi_segments"];
+  const rows=[cols.join(",")].concat(active().map(c=>cols.map(k=>{
+    let v=c[k]; if(v==null)v=""; if(typeof v==="string"&&v.includes(","))v='"'+v+'"'; return v;}).join(",")));
+  const blob=new Blob([rows.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=base+"_data.csv";a.click();
+};
+
+/* ============================ synthetic demo data ============================ */
+function buildDemo(){
+  // [name, stratum, ownership, rbc, hrl, roe5, bs, op, bp, assets($000), hhi, fsr, icr, erm, wellabe]
+  const R=[
+   ["Wellabe Group","core","mutual",648,13,-7.4,"Strongest","Adequate","Neutral",2300000,.78,"A","a","Appropriate",1],
+   ["Physicians Mutual","core;transition","mutual",1200,9,-2.1,"Strongest","Strong","Neutral",6800000,.66,"A+","aa-","Appropriate",0],
+   ["Mutual of Omaha","core","mutual",434,6,-1.4,"Very Strong","Strong","Favorable",11800000,.48,"A+","aa-","Appropriate",0],
+   ["Guarantee Trust Life","core","mutual",809,28,13.1,"Strongest","Strong","Limited",946000,.77,"A","a","Appropriate",0],
+   ["Aflac (Continental American)","core;anchor","stock",950,8,18,"Strongest","Strong","Favorable",4200000,.6,"A+","aa","Very Strong",0],
+   ["Globe Life (United American)","core","stock",316,12,14,"Strong","Strong","Favorable",5600000,.55,"A","a+","Appropriate",0],
+   ["CNO — Bankers Life","core","stock",380,18,9,"Very Strong","Strong","Neutral",18000000,.5,"A","a","Appropriate",0],
+   ["CNO — Washington National","core","stock",375,16,8,"Very Strong","Strong","Neutral",6500000,.62,"A","a","Appropriate",0],
+   ["Combined Insurance (Chubb)","core","stock",520,10,16,"Strong","Strong","Neutral",3900000,.58,"A+","aa-","Appropriate",0],
+   ["Humana Insurance Co","core","stock",240,22,11,"Adequate","Strong","Favorable",9000000,.7,"A","a","Appropriate",0],
+   ["UnitedHealthcare Insurance Co","core;anchor","stock",300,20,15,"Strong","Strong","Very Favorable",22000000,.72,"A","a+","Appropriate",0],
+   ["Pekin Life","core","stock",470,11,3,"Very Strong","Marginal","Neutral",1700000,.5,"A-","a-","Appropriate",0],
+   ["Lumico (RGA)","core","stock",560,9,-12,"Very Strong","Marginal","Limited",700000,.85,"A","a","Appropriate",0],
+   ["American National","core","stock",430,17,6,"Very Strong","Adequate","Favorable",30000000,.4,"A","a","Appropriate",0],
+   ["Std Life & Accident","core","stock",520,8,5,"Very Strong","Adequate","Limited",900000,.8,"A-","a-","Appropriate",0],
+   ["ManhattanLife Assurance","core;low","stock",290,24,2,"Adequate","Marginal","Limited",1400000,.6,"B++","bbb+","Marginal",0],
+   ["Continental General","low","stock",210,33,-5,"Adequate","Weak","Limited",4200000,.7,"B++","bbb","Marginal",0],
+   ["National Guardian Life","preneed","mutual",520,14,4,"Strong","Adequate","Limited",5100000,.74,"A","a","Appropriate",0],
+   ["Homesteaders Life","preneed","mutual",430,12,5,"Very Strong","Adequate","Limited",3600000,.9,"A-","a-","Appropriate",0],
+   ["Funeral Directors Life","preneed","stock",380,15,7,"Strong","Strong","Limited",4000000,.88,"A-","a-","Appropriate",0],
+   ["Security National","preneed","stock",300,20,6,"Adequate","Adequate","Limited",1300000,.82,"B++","bbb+","Appropriate",0],
+   ["Assurity Life","preneed","mutual",700,10,3,"Strongest","Adequate","Neutral",2900000,.55,"A-","a-","Appropriate",0],
+   ["USAA Life","anchor","stock",480,9,12,"Very Strong","Strong","Favorable",30000000,.5,"A++","aaa","Appropriate",0],
+   ["Thrivent","anchor","fraternal",700,11,8,"Strongest","Strong","Favorable",110000000,.45,"A++","aa+","Very Strong",0],
+   ["State Farm Life","anchor","mutual",1100,7,9,"Strongest","Strong","Favorable",95000000,.5,"A+","aa","Appropriate",0],
+   ["Northwestern Mutual","anchor","mutual",1050,12,10,"Strongest","Very Strong","Very Favorable",330000000,.4,"A++","aaa","Very Strong",0],
+   ["New York Life","anchor","mutual",980,13,9,"Strongest","Very Strong","Very Favorable",220000000,.42,"A++","aaa","Very Strong",0],
+   ["MassMutual","anchor","mutual",900,15,8,"Strongest","Strong","Very Favorable",290000000,.43,"A++","aa+","Very Strong",0],
+   ["Guardian Life","anchor","mutual",870,12,7,"Strongest","Strong","Favorable",75000000,.5,"A++","aa+","Very Strong",0],
+   ["Lincoln National Life","variance","stock",380,26,4,"Strong","Strong","Favorable",290000000,.45,"A","a+","Appropriate",0],
+   ["Penn Mutual","variance","mutual",620,18,6,"Strongest","Strong","Favorable",36000000,.5,"A+","aa-","Appropriate",0],
+   ["Bankers Fidelity (Atlantic Am.)","core;transition","stock",330,15,1,"Strong","Marginal","Limited",350000,.7,"A-","a-","Appropriate",0],
+   ["American Southern (Atlantic Am.)","transition","stock",420,12,3,"Strong","Adequate","Limited",400000,.65,"A-","a-","Appropriate",0]
+  ];
+  return R.map((r,i)=>({rating_unit_name:r[0],lead_entity:r[0],stratum:r[1],ownership:r[2],
+    rbc_cal_pct:r[3],higher_risk_leverage_partial:r[4],roe_5yr_mean:r[5],
+    bs_assessment:r[6],op_assessment:r[7],bp_assessment:r[8],
+    total_assets_usd:r[9],hhi_segments:r[10],material_segment_count:Math.max(1,Math.round((1-r[10])*5)),
+    fsr:r[11],icr:r[12],erm_assessment:r[13],is_wellabe:!!r[14],
+    ah_combined_ratio:Math.round(85+r[4]/2),
+    notching:notchPredict(r[6],r[7],r[8],r[13],r[12])}));
+}
+/* mirror of src/notching.py for the demo notching view */
+function notchPredict(bs,op,bp,erm,icr){
+  const BASE={"Strongest":"a","Very Strong":"a-","Strong":"bbb+","Adequate":"bbb","Weak":"bb","Very Weak":"b-"};
+  const OP={"Very Strong":2,"Strong":1,"Adequate":0,"Marginal":-1,"Weak":-2,"Very Weak":-3};
+  const BP={"Very Favorable":2,"Favorable":1,"Neutral":0,"Limited":-1,"Very Limited":-2};
+  const ERM={"Very Strong":1,"Appropriate":0,"Marginal":-1,"Weak":-3,"Very Weak":-4};
+  const base=BASE[bs]; if(!base)return null;
+  const tot=(OP[op]||0)+(BP[bp]||0)+(ERM[erm]||0);
+  let i=ICR_SCALE.indexOf(base)-tot; i=Math.max(0,Math.min(ICR_SCALE.length-1,i));
+  return {predicted_icr:ICR_SCALE[i],notches:{total:tot}};
+}
+</script>
+</body>
+</html>

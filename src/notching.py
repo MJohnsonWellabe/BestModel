@@ -33,11 +33,15 @@ BASELINE_ICR = {
     "Very Weak": "b-",     # below the table
 }
 
-# Block assessment -> notches. No-change state is 0. Magnitudes are representative midpoints
-# within each published range (OP +2/-3, BP +2/-2, ERM +1/-4).
-OP_NOTCH = {"Strong": +1, "Adequate": 0, "Marginal": -2, "Weak": -3}
-BP_NOTCH = {"Favorable": +1, "Neutral": 0, "Limited": -1, "Very Limited": -2}
-ERM_NOTCH = {"Very Strong": +1, "Appropriate": 0, "Marginal": -2, "Weak": -4}
+# Block assessment -> notches. No-change state is 0. AM Best's full BCRM tier sets are used
+# (the ELT field guide compressed them); the published ranges fit the fuller tiers exactly:
+#   Operating performance  +2 .. -3   (Very Strong / Strong / Adequate / Marginal / Weak / Very Weak)
+#   Business profile        +2 .. -2   (Very Favorable / Favorable / Neutral / Limited / Very Limited)
+#   ERM                     +1 .. -4   (Very Strong / Appropriate / Marginal / Weak / Very Weak)
+# Magnitudes within a range are representative midpoints (AM Best applies committee judgment).
+OP_NOTCH = {"Very Strong": +2, "Strong": +1, "Adequate": 0, "Marginal": -1, "Weak": -2, "Very Weak": -3}
+BP_NOTCH = {"Very Favorable": +2, "Favorable": +1, "Neutral": 0, "Limited": -1, "Very Limited": -2}
+ERM_NOTCH = {"Very Strong": +1, "Appropriate": 0, "Marginal": -1, "Weak": -3, "Very Weak": -4}
 
 # ICR -> FSR letter (published map; extended below the guide's table for completeness).
 ICR_TO_FSR = {

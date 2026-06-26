@@ -1,4 +1,0 @@
-carrier,source_file,matched_roster,has_assessment,missing_fields,unmatched_source_rows
-American Republic Insurance Company,AmericanRepublic_Highlights.xlsx,False,False,channel_count; hhi_lines; material_line_count; medsup_market_rank; mortgage_pct; net_unrealized_pct_cap; real_estate_pct; schedule_ba_pct; states_licensed; top5_state_pct; top_state_pct,36
-Guarantee Trust Life,GuaranteeTrustLife_Highlights.xlsx,True,False,channel_count; hhi_lines; material_line_count; medsup_market_rank; mortgage_pct; net_unrealized_pct_cap; real_estate_pct; schedule_ba_pct; states_licensed; top5_state_pct; top_state_pct,36
-Mutual of Omaha,MutualOfOmaha_Highlights.xlsx,True,False,channel_count; hhi_lines; material_line_count; medsup_market_rank; mortgage_pct; net_unrealized_pct_cap; real_estate_pct; schedule_ba_pct; states_licensed; top5_state_pct; top_state_pct,36

@@ -2,6 +2,11 @@
 data/raw/**
 !data/raw/.gitkeep
 
+# Build artifacts derived from licensed raw data (regenerate via: python src/build.py).
+# The tool ships with embedded DEMO data and loads this locally when present.
+tool/data.json
+data/processed/missingness.csv
+
 # Python
 __pycache__/
 *.pyc
