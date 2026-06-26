@@ -30,7 +30,7 @@ MISS_CSV = ROOT / "data" / "processed" / "missingness.csv"
 ASSESSMENT_FIELDS = [
     "amb_number", "naic_code", "domicile_state", "fsr", "icr", "outlook", "under_review",
     "bs_assessment", "op_assessment", "bp_assessment", "erm_assessment",
-    "rating_action_date", "last_action_type", "source_url",
+    "rating_action_date", "last_action_type", "source_url", "rating_basis",
 ]
 WELLABE_NAMES = {"wellabegroup", "medicoinsurancecompany", "americanrepublicinsurancecompany",
                  "greatwesterninsurancecompany"}
@@ -91,6 +91,11 @@ def main() -> int:
         if rec.get("bs_assessment"):
             pred = notching.predict(rec["bs_assessment"], rec.get("op_assessment"),
                                     rec.get("bp_assessment"), rec.get("erm_assessment"))
+            rng = notching.predict_range(rec["bs_assessment"], rec.get("op_assessment"),
+                                         rec.get("bp_assessment"), rec.get("erm_assessment"))
+            pred["predicted_strong"] = rng.get("predicted_strong")
+            pred["predicted_weak"] = rng.get("predicted_weak")
+            pred["in_range"] = notching.in_range(rng, rec.get("icr"))
             rec["notching"] = pred
             rec["icr_residual_notches"] = notching.residual(pred.get("predicted_icr"), rec.get("icr"))
         else:

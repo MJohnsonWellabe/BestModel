@@ -22,7 +22,21 @@ OUT = Path(__file__).resolve().parents[1] / "data" / "assessments.csv"
 
 COLS = ["rating_unit_name", "amb_number", "naic_code", "domicile_state", "fsr", "icr",
         "outlook", "under_review", "bs_assessment", "op_assessment", "bp_assessment",
-        "erm_assessment", "rating_action_date", "last_action_type", "source_url"]
+        "erm_assessment", "rating_action_date", "last_action_type", "source_url", "rating_basis"]
+
+# Carriers whose published ICR incorporates group/parent support (or is the group rating
+# assigned to a subsidiary) beyond their own four standalone block assessments. Residuals for
+# these are expected to sit ABOVE the standalone-block prediction — that lift IS the finding,
+# not a model miss. Everything else is treated as standalone (rated on its own merits).
+GROUP_MEMBERS = {
+    "Aflac", "Globe Life", "CNO — Bankers Life", "CNO — Washington National",
+    "CNO — Colonial Penn", "Aetna/CVS — Continental Life", "Aetna/CVS — American Continental",
+    "Cigna — Loyal American", "Cigna — American Retirement Life", "Cigna — National Health",
+    "Humana", "UnitedHealthcare", "Combined Insurance (Chubb)", "Lumico (RGA)",
+    "American National — Standard Life & Accident", "American-Amicable / Trinity",
+    "Forethought (Global Atlantic)", "USAA Life", "State Farm Life", "Sentinel Security Life",
+    "Atlantic American — Bankers Fidelity", "Atlantic American — American Southern",
+}
 
 # rating_unit_name keys MUST match data/carriers_seed.csv so build.py can join.
 # Tuple order after name: fsr, icr, outlook, under_review, bs, op, bp, erm, date, action, url
@@ -92,8 +106,9 @@ def main():
         for r in ROWS:
             name = r[0]
             rest = r[1:]
-            # row = name, amb_number(blank), naic(blank), domicile(blank), then the 11 fields
-            w.writerow([name, "", "", "", *rest])
+            basis = "group-member" if name in GROUP_MEMBERS else "standalone"
+            # row = name, amb_number(blank), naic(blank), domicile(blank), 11 fields, rating_basis
+            w.writerow([name, "", "", "", *rest, basis])
     print(f"wrote {OUT} ({len(ROWS)} carriers; "
           f"{sum(1 for r in ROWS if r[5])} with balance-sheet assessment)")
 

@@ -43,6 +43,23 @@ OP_NOTCH = {"Very Strong": +2, "Strong": +1, "Adequate": 0, "Marginal": -1, "Wea
 BP_NOTCH = {"Very Favorable": +2, "Favorable": +1, "Neutral": 0, "Limited": -1, "Very Limited": -2}
 ERM_NOTCH = {"Very Strong": +1, "Appropriate": 0, "Marginal": -1, "Weak": -3, "Very Weak": -4}
 
+# ---- Range model -------------------------------------------------------------------------
+# The point model above collapses each published band to one value, which makes the rating
+# look "wrong" whenever AM Best sits at the high end of a band. The honest model is an
+# interval: the baseline is a 2-notch band, and OP/ERM notches are themselves ranges. A
+# prediction "hits" when the actual ICR falls inside the interval. (BP maps cleanly to a
+# single integer, so its range is a point.)
+BASELINE_BAND = {   # (stronger end, weaker end) of the published baseline ICR band
+    "Strongest": ("a+", "a"), "Very Strong": ("a", "a-"), "Strong": ("a-", "bbb+"),
+    "Adequate": ("bbb+", "bbb-"), "Weak": ("bb+", "bb-"), "Very Weak": ("b+", "b-"),
+}
+OP_BAND =  {"Very Strong": (1, 2), "Strong": (1, 2), "Adequate": (0, 0),
+            "Marginal": (-2, -1), "Weak": (-3, -2), "Very Weak": (-3, -3)}
+BP_BAND =  {"Very Favorable": (2, 2), "Favorable": (1, 1), "Neutral": (0, 0),
+            "Limited": (-1, -1), "Very Limited": (-2, -2)}
+ERM_BAND = {"Very Strong": (1, 1), "Appropriate": (0, 0), "Marginal": (-2, -1),
+            "Weak": (-4, -3), "Very Weak": (-4, -4)}
+
 # ICR -> FSR letter (published map; extended below the guide's table for completeness).
 ICR_TO_FSR = {
     "aaa": "A++", "aa+": "A++", "aa": "A+", "aa-": "A+",
@@ -90,6 +107,39 @@ def residual(predicted_icr: str | None, actual_icr: str | None) -> int | None:
     return p - a  # smaller index = stronger; positive means actual is stronger
 
 
+def predict_range(bs: str, op: str, bp: str, erm: str) -> dict:
+    """Return the predicted ICR **interval** from the published baseline + notch bands.
+
+    A carrier's standalone rating should fall inside this interval; where the actual ICR sits
+    above it, the lift is coming from outside the four blocks (group/parent support or the
+    comprehensive adjustment), not from the model being wrong.
+    """
+    band = BASELINE_BAND.get((bs or "").strip())
+    if band is None:
+        return {"predicted_strong": None, "predicted_weak": None, "note": f"unknown bs: {bs!r}"}
+    hi_idx, lo_idx = ICR_INDEX[band[0]], ICR_INDEX[band[1]]  # hi=stronger(lower idx)
+    op_b = OP_BAND.get((op or "").strip(), (0, 0))
+    bp_b = BP_BAND.get((bp or "").strip(), (0, 0))
+    erm_b = ERM_BAND.get((erm or "").strip(), (0, 0))
+    max_up = op_b[1] + bp_b[1] + erm_b[1]   # most positive notches
+    min_up = op_b[0] + bp_b[0] + erm_b[0]   # most negative notches
+    strong_idx = _clamp(hi_idx - max_up)    # strongest plausible ICR (lowest index)
+    weak_idx = _clamp(lo_idx - min_up)      # weakest plausible ICR (highest index)
+    lo, hi = min(strong_idx, weak_idx), max(strong_idx, weak_idx)
+    return {"predicted_strong": ICR_SCALE[lo], "predicted_weak": ICR_SCALE[hi],
+            "strong_idx": lo, "weak_idx": hi}
+
+
+def in_range(rng: dict, actual_icr: str | None) -> bool | None:
+    """True if the actual ICR falls within the predicted interval from predict_range()."""
+    if not actual_icr or rng.get("strong_idx") is None:
+        return None
+    a = ICR_INDEX.get(actual_icr.strip().lower())
+    if a is None:
+        return None
+    return rng["strong_idx"] <= a <= rng["weak_idx"]
+
+
 def _selftest():
     # Field guide worked example: Strongest + Adequate + Neutral + Appropriate -> a -> A
     r = predict("Strongest", "Adequate", "Neutral", "Appropriate")
@@ -97,8 +147,15 @@ def _selftest():
     assert r["predicted_fsr"] == "A", r
     # A downgrade pressure example: Strong BS, Marginal OP -> below baseline
     r2 = predict("Strong", "Marginal", "Neutral", "Appropriate")
-    assert r2["baseline_icr"] == "bbb+" and r2["notches"]["total"] == -2, r2
-    print("notching self-test passed:", r["baseline_icr"], "->", r["predicted_icr"], "->", r["predicted_fsr"])
+    assert r2["baseline_icr"] == "bbb+" and r2["notches"]["total"] == -1, r2
+    # Range model: Physicians Mutual (Strongest/Strong/Neutral/Appropriate) actual aa- should be
+    # in-range once we allow the high-Strongest baseline + Strong=+2 ceiling.
+    rg = predict_range("Strongest", "Strong", "Neutral", "Appropriate")  # -> aa .. a+
+    assert in_range(rg, "aa-") is True, rg        # actual rating, inside the interval
+    assert in_range(rg, "a") is False, rg         # one below the band (would need a drag)
+    assert in_range(rg, "aa+") is False, rg       # above the achievable ceiling
+    print("notching self-test passed:", r["predicted_icr"], "| range PhysMut:",
+          rg["predicted_strong"], "..", rg["predicted_weak"])
 
 
 if __name__ == "__main__":

@@ -1,54 +1,54 @@
-| rating_unit_name | bs | op | bp | erm | baseline_icr | notch_total | predicted_icr | actual_icr | residual_notches |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Wellabe Group | Strongest | Adequate | Neutral | Appropriate | a | 0 | a | a | 0 |
-| Physicians Mutual | Strongest | Strong | Neutral | Appropriate | a | 1 | a+ | aa- | 1 |
-| Mutual of Omaha | Very Strong | Strong | Favorable | Appropriate | a- | 2 | a+ | aa- | 1 |
-| Guarantee Trust Life | Strongest | Strong | Limited | Appropriate | a | 0 | a | a | 0 |
-| Aflac | Strongest | Strong | Favorable | Very Strong | a | 3 | aa | aa | 0 |
-| Globe Life | Strong | Strong | Favorable | Appropriate | bbb+ | 2 | a | a+ | 1 |
-| CNO — Bankers Life | Very Strong | Strong | Neutral | Appropriate | a- | 1 | a | a | 0 |
-| CNO — Washington National | Very Strong | Strong | Neutral | Appropriate | a- | 1 | a | a | 0 |
-| CNO — Colonial Penn | Very Strong | Strong | Neutral | Appropriate | a- | 1 | a | a | 0 |
-| Aetna/CVS — Continental Life | Very Strong | Strong | Favorable | Appropriate | a- | 2 | a+ | a | -1 |
-| Aetna/CVS — American Continental | Very Strong | Strong | Favorable | Appropriate | a- | 2 | a+ | a | -1 |
-| Cigna — Loyal American | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | a | 2 |
-| Cigna — American Retirement Life | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | a | 2 |
-| Cigna — National Health | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | a | 2 |
-| Humana | Adequate | Strong | Favorable | Appropriate | bbb | 2 | a- | a | 1 |
-| UnitedHealthcare | Strong | Strong | Very Favorable | Appropriate | bbb+ | 3 | a+ | a+ | 0 |
-| Combined Insurance (Chubb) | Strong | Strong | Neutral | Appropriate | bbb+ | 1 | a- | aa- | 3 |
-| Lumico (RGA) | Very Strong | Marginal | Limited | Appropriate | a- | -2 | bbb | a | 3 |
-| Pekin Life | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | a- | 1 |
-| American National — Standard Life & Accident | Very Strong | Adequate | Limited | Appropriate | a- | -1 | bbb+ | a- | 1 |
-| American National | Very Strong | Adequate | Favorable | Appropriate | a- | 1 | a | a | 0 |
-| Kemper — Reserve National | Very Strong | Adequate | Neutral | Appropriate | a- | 0 | a- | a- | 0 |
-| ManhattanLife — Assurance | Adequate | Strong | Neutral | Appropriate | bbb | 1 | bbb+ | bbb | -1 |
-| ManhattanLife — Western United | Adequate | Strong | Neutral | Appropriate | bbb | 1 | bbb+ | bbb | -1 |
-| New Era Life | Strong | Adequate | Neutral | Appropriate | bbb+ | 0 | bbb+ | a- | 1 |
-| Philadelphia American | Strong | Adequate | Neutral | Appropriate | bbb+ | 0 | bbb+ | a- | 1 |
-| Government Personnel Mutual | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | bbb+ | 0 |
-| National Guardian Life | Very Strong | Adequate | Neutral | Appropriate | a- | 0 | a- | a | 1 |
-| Homesteaders Life | Strong | Adequate | Neutral | Appropriate | bbb+ | 0 | bbb+ | a- | 1 |
-| Funeral Directors Life | Very Strong | Adequate | Limited | Appropriate | a- | -1 | bbb+ | a- | 1 |
-| Forethought (Global Atlantic) | Very Strong | Adequate | Favorable | Appropriate | a- | 1 | a | a+ | 1 |
-| Investors Heritage | Adequate | Adequate | Neutral | Appropriate | bbb | 0 | bbb | bbb+ | 1 |
-| American-Amicable / Trinity | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | a | 2 |
-| Assurity Life | Strongest | Adequate | Limited | Appropriate | a | -1 | a- | a- | 0 |
-| USAA Life | Very Strong | Strong | Favorable | Appropriate | a- | 2 | a+ | aaa | 4 |
-| Thrivent | Strongest | Strong | Favorable | Very Strong | a | 3 | aa | aa+ | 1 |
-| State Farm Life | Strongest | Strong | Favorable | Appropriate | a | 2 | aa- | aa | 1 |
-| Northwestern Mutual | Strongest | Very Strong | Very Favorable | Very Strong | a | 5 | aaa | aaa | 0 |
-| New York Life | Strongest | Very Strong | Very Favorable | Very Strong | a | 5 | aaa | aaa | 0 |
-| MassMutual | Strongest | Strong | Very Favorable | Very Strong | a | 4 | aa+ | aa+ | 0 |
-| Guardian Life | Strongest | Strong | Favorable | Very Strong | a | 3 | aa | aa+ | 1 |
-| Kansas City Life | Very Strong | Marginal | Neutral | Appropriate | a- | -1 | bbb+ | a- | 1 |
-| National Western Life | Very Strong | Adequate | Neutral | Appropriate | a- | 0 | a- | a- | 0 |
-| Penn Mutual | Strongest | Strong | Favorable | Appropriate | a | 2 | aa- | aa- | 0 |
-| Lincoln Financial | Strong | Strong | Favorable | Appropriate | bbb+ | 2 | a | a+ | 1 |
-| Atlantic American — Bankers Fidelity | Very Strong | Adequate | Neutral | Appropriate | a- | 0 | a- | a- | 0 |
-| Atlantic American — American Southern | Strong | Adequate | Neutral | Appropriate | bbb+ | 0 | bbb+ | a- | 1 |
-| Heartland National | Strong | Adequate | Limited | Marginal | bbb+ | -2 | bbb- | bbb | 1 |
-| Sentinel Security Life | Adequate | Adequate | Limited | Marginal | bbb | -2 | bb+ | bb+ | 0 |
-| Continental General | Strong | Adequate | Very Limited | Appropriate | bbb+ | -2 | bbb- | bbb- | 0 |
-| Liberty Bankers | Very Strong | Adequate | Neutral | Appropriate | a- | 0 | a- | a- | 0 |
-| Citizens Inc — CICA | Strong | Adequate | Limited | Appropriate | bbb+ | -1 | bbb | bbb+ | 1 |
+| rating_unit_name | rating_basis | bs | op | bp | erm | predicted_range | band_width | actual_icr | residual_notches | verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Wellabe Group | standalone | Strongest | Adequate | Neutral | Appropriate | a+..a | 2 | a | 0 | in-range |
+| Physicians Mutual | standalone | Strongest | Strong | Neutral | Appropriate | aa..a+ | 3 | aa- | 1 | in-range |
+| Mutual of Omaha | standalone | Very Strong | Strong | Favorable | Appropriate | aa..a+ | 3 | aa- | 1 | in-range |
+| Guarantee Trust Life | standalone | Strongest | Strong | Limited | Appropriate | aa-..a | 3 | a | 0 | in-range |
+| Aflac | group-member | Strongest | Strong | Favorable | Very Strong | aaa..aa | 3 | aa | 0 | in-range |
+| Globe Life | group-member | Strong | Strong | Favorable | Appropriate | aa-..a | 3 | a+ | 1 | in-range |
+| CNO — Bankers Life | group-member | Very Strong | Strong | Neutral | Appropriate | aa-..a | 3 | a | 0 | in-range |
+| CNO — Washington National | group-member | Very Strong | Strong | Neutral | Appropriate | aa-..a | 3 | a | 0 | in-range |
+| CNO — Colonial Penn | group-member | Very Strong | Strong | Neutral | Appropriate | aa-..a | 3 | a | 0 | in-range |
+| Aetna/CVS — Continental Life | group-member | Very Strong | Strong | Favorable | Appropriate | aa..a+ | 3 | a | -1 | group-aligned |
+| Aetna/CVS — American Continental | group-member | Very Strong | Strong | Favorable | Appropriate | aa..a+ | 3 | a | -1 | group-aligned |
+| Cigna — Loyal American | group-member | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | a | 2 | group-aligned |
+| Cigna — American Retirement Life | group-member | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | a | 2 | group-aligned |
+| Cigna — National Health | group-member | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | a | 2 | group-aligned |
+| Humana | group-member | Adequate | Strong | Favorable | Appropriate | a+..bbb+ | 4 | a | 1 | in-range |
+| UnitedHealthcare | group-member | Strong | Strong | Very Favorable | Appropriate | aa..a+ | 3 | a+ | 0 | in-range |
+| Combined Insurance (Chubb) | group-member | Strong | Strong | Neutral | Appropriate | a+..a- | 3 | aa- | 3 | group-aligned |
+| Lumico (RGA) | group-member | Very Strong | Marginal | Limited | Appropriate | bbb+..bbb- | 3 | a | 3 | group-aligned |
+| Pekin Life | standalone | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | a- | 1 | in-range |
+| American National — Standard Life & Accident | group-member | Very Strong | Adequate | Limited | Appropriate | a-..bbb+ | 2 | a- | 1 | in-range |
+| American National | standalone | Very Strong | Adequate | Favorable | Appropriate | a+..a | 2 | a | 0 | in-range |
+| Kemper — Reserve National | standalone | Very Strong | Adequate | Neutral | Appropriate | a..a- | 2 | a- | 0 | in-range |
+| ManhattanLife — Assurance | standalone | Adequate | Strong | Neutral | Appropriate | a..bbb | 4 | bbb | -1 | in-range |
+| ManhattanLife — Western United | standalone | Adequate | Strong | Neutral | Appropriate | a..bbb | 4 | bbb | -1 | in-range |
+| New Era Life | standalone | Strong | Adequate | Neutral | Appropriate | a-..bbb+ | 2 | a- | 1 | in-range |
+| Philadelphia American | standalone | Strong | Adequate | Neutral | Appropriate | a-..bbb+ | 2 | a- | 1 | in-range |
+| Government Personnel Mutual | standalone | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | bbb+ | 0 | in-range |
+| National Guardian Life | standalone | Very Strong | Adequate | Neutral | Appropriate | a..a- | 2 | a | 1 | in-range |
+| Homesteaders Life | standalone | Strong | Adequate | Neutral | Appropriate | a-..bbb+ | 2 | a- | 1 | in-range |
+| Funeral Directors Life | standalone | Very Strong | Adequate | Limited | Appropriate | a-..bbb+ | 2 | a- | 1 | in-range |
+| Forethought (Global Atlantic) | group-member | Very Strong | Adequate | Favorable | Appropriate | a+..a | 2 | a+ | 1 | in-range |
+| Investors Heritage | standalone | Adequate | Adequate | Neutral | Appropriate | bbb+..bbb- | 3 | bbb+ | 1 | in-range |
+| American-Amicable / Trinity | group-member | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | a | 2 | group-aligned |
+| Assurity Life | standalone | Strongest | Adequate | Limited | Appropriate | a..a- | 2 | a- | 0 | in-range |
+| USAA Life | group-member | Very Strong | Strong | Favorable | Appropriate | aa..a+ | 3 | aaa | 4 | group-aligned |
+| Thrivent | standalone | Strongest | Strong | Favorable | Very Strong | aaa..aa | 3 | aa+ | 1 | in-range |
+| State Farm Life | group-member | Strongest | Strong | Favorable | Appropriate | aa+..aa- | 3 | aa | 1 | in-range |
+| Northwestern Mutual | standalone | Strongest | Very Strong | Very Favorable | Very Strong | aaa..aa+ | 2 | aaa | 0 | in-range |
+| New York Life | standalone | Strongest | Very Strong | Very Favorable | Very Strong | aaa..aa+ | 2 | aaa | 0 | in-range |
+| MassMutual | standalone | Strongest | Strong | Very Favorable | Very Strong | aaa..aa+ | 2 | aa+ | 0 | in-range |
+| Guardian Life | standalone | Strongest | Strong | Favorable | Very Strong | aaa..aa | 3 | aa+ | 1 | in-range |
+| Kansas City Life | standalone | Very Strong | Marginal | Neutral | Appropriate | a-..bbb | 3 | a- | 1 | in-range |
+| National Western Life | standalone | Very Strong | Adequate | Neutral | Appropriate | a..a- | 2 | a- | 0 | in-range |
+| Penn Mutual | standalone | Strongest | Strong | Favorable | Appropriate | aa+..aa- | 3 | aa- | 0 | in-range |
+| Lincoln Financial | standalone | Strong | Strong | Favorable | Appropriate | aa-..a | 3 | a+ | 1 | in-range |
+| Atlantic American — Bankers Fidelity | group-member | Very Strong | Adequate | Neutral | Appropriate | a..a- | 2 | a- | 0 | in-range |
+| Atlantic American — American Southern | group-member | Strong | Adequate | Neutral | Appropriate | a-..bbb+ | 2 | a- | 1 | in-range |
+| Heartland National | standalone | Strong | Adequate | Limited | Marginal | bbb..bb+ | 3 | bbb | 1 | in-range |
+| Sentinel Security Life | group-member | Adequate | Adequate | Limited | Marginal | bbb-..bb- | 4 | bb+ | 0 | in-range |
+| Continental General | standalone | Strong | Adequate | Very Limited | Appropriate | bbb..bbb- | 2 | bbb- | 0 | in-range |
+| Liberty Bankers | standalone | Very Strong | Adequate | Neutral | Appropriate | a..a- | 2 | a- | 0 | in-range |
+| Citizens Inc — CICA | standalone | Strong | Adequate | Limited | Appropriate | bbb+..bbb | 2 | bbb+ | 1 | in-range |
