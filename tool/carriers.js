@@ -3,6 +3,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Wellabe Group",
   "lead_entity": "Medico Insurance Company",
+  "naic_code": "31119",
   "stratum": "core",
   "ownership": "mutual MHC",
   "fsr": "A",
@@ -20,6 +21,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Physicians Mutual",
   "lead_entity": "Physicians Mutual Insurance Co",
+  "naic_code": "80578",
   "stratum": "core; transition",
   "ownership": "mutual MHC",
   "fsr": "A+",
@@ -37,6 +39,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Mutual of Omaha",
   "lead_entity": "United of Omaha Life Insurance Co",
+  "naic_code": "69868",
   "stratum": "core",
   "ownership": "mutual MHC",
   "fsr": "A+",
@@ -54,6 +57,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Guarantee Trust Life",
   "lead_entity": "Guarantee Trust Life Insurance Co",
+  "naic_code": "64211",
   "stratum": "core",
   "ownership": "mutual",
   "fsr": "A",
@@ -71,6 +75,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Aflac",
   "lead_entity": "Continental American Insurance Co",
+  "naic_code": "71730",
   "stratum": "core; anchor",
   "ownership": "stock",
   "fsr": "A+",
@@ -88,6 +93,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Globe Life",
   "lead_entity": "United American Insurance Co",
+  "naic_code": "92657",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -105,6 +111,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "CNO \u2014 Bankers Life",
   "lead_entity": "Bankers Life & Casualty Co",
+  "naic_code": "61263",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -122,6 +129,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "CNO \u2014 Washington National",
   "lead_entity": "Washington National Insurance Co",
+  "naic_code": "70319",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -139,6 +147,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "CNO \u2014 Colonial Penn",
   "lead_entity": "Colonial Penn Life Insurance Co",
+  "naic_code": "62065",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -156,6 +165,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Aetna/CVS \u2014 Continental Life",
   "lead_entity": "Continental Life Ins Co of Brentwood",
+  "naic_code": "68500",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -173,6 +183,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Aetna/CVS \u2014 American Continental",
   "lead_entity": "American Continental Insurance Co",
+  "naic_code": "12321",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -190,6 +201,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Cigna \u2014 Loyal American",
   "lead_entity": "Loyal American Life Insurance Co",
+  "naic_code": "65722",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -207,6 +219,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Cigna \u2014 American Retirement Life",
   "lead_entity": "American Retirement Life Insurance Co",
+  "naic_code": "88366",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -224,6 +237,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Cigna \u2014 National Health",
   "lead_entity": "Cigna National Health Insurance Co",
+  "naic_code": "61727",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -241,6 +255,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Humana",
   "lead_entity": "Humana Insurance Co",
+  "naic_code": "73288",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -258,6 +273,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "UnitedHealthcare",
   "lead_entity": "UnitedHealthcare Insurance Co",
+  "naic_code": "79413",
   "stratum": "core; anchor",
   "ownership": "stock",
   "fsr": "A",
@@ -275,6 +291,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Combined Insurance (Chubb)",
   "lead_entity": "Combined Insurance Co of America",
+  "naic_code": "62146",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A+",
@@ -292,6 +309,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Lumico (RGA)",
   "lead_entity": "Lumico Life Insurance Co",
+  "naic_code": "73504",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -309,6 +327,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Pekin Life",
   "lead_entity": "Pekin Life Insurance Co",
+  "naic_code": "67628",
   "stratum": "core",
   "ownership": "stock (mutual-affil)",
   "fsr": "A-",
@@ -326,6 +345,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "American National \u2014 Standard Life & Accident",
   "lead_entity": "Standard Life & Accident Insurance Co",
+  "naic_code": "86355",
   "stratum": "core",
   "ownership": "stock (Brookfield)",
   "fsr": "A-",
@@ -343,6 +363,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "American National",
   "lead_entity": "American National Insurance Co",
+  "naic_code": "60739",
   "stratum": "core",
   "ownership": "stock (Brookfield)",
   "fsr": "A",
@@ -360,6 +381,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Kemper \u2014 Reserve National",
   "lead_entity": "Reserve National Insurance Co",
+  "naic_code": "68462",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A-",
@@ -377,6 +399,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "ManhattanLife \u2014 Assurance",
   "lead_entity": "ManhattanLife Assurance Co of America",
+  "naic_code": "65870",
   "stratum": "core; low",
   "ownership": "stock",
   "fsr": "B++",
@@ -394,6 +417,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "ManhattanLife \u2014 Western United",
   "lead_entity": "Western United Life Assurance Co",
+  "naic_code": "85189",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "B++",
@@ -411,6 +435,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "New Era Life",
   "lead_entity": "New Era Life Insurance Co",
+  "naic_code": "78743",
   "stratum": "core; low",
   "ownership": "stock",
   "fsr": "A-",
@@ -428,6 +453,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Philadelphia American",
   "lead_entity": "Philadelphia American Life Insurance Co",
+  "naic_code": "67784",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "A-",
@@ -445,6 +471,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Government Personnel Mutual",
   "lead_entity": "GPM Health & Life Insurance Co",
+  "naic_code": "63967",
   "stratum": "core",
   "ownership": "mutual",
   "fsr": "B++",
@@ -462,6 +489,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Americo",
   "lead_entity": "Americo Financial Life & Annuity Ins Co",
+  "naic_code": "61999",
   "stratum": "core",
   "ownership": "stock",
   "fsr": "A",
@@ -479,6 +507,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Atlantic American \u2014 Bankers Fidelity",
   "lead_entity": "Bankers Fidelity Life Insurance Co",
+  "naic_code": "71919",
   "stratum": "core; transition",
   "ownership": "stock",
   "fsr": "A-",
@@ -496,6 +525,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Atlantic American \u2014 American Southern",
   "lead_entity": "American Southern Insurance Co",
+  "naic_code": "10235",
   "stratum": "transition",
   "ownership": "stock",
   "fsr": "A-",
@@ -513,6 +543,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Heartland National",
   "lead_entity": "Heartland National Life Insurance Co",
+  "naic_code": "66214",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "B++",
@@ -530,6 +561,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Sentinel Security Life",
   "lead_entity": "Sentinel Security Life Insurance Co",
+  "naic_code": "68802",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "B",
@@ -547,6 +579,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Everence",
   "lead_entity": "Everence Association / Everence Ins",
+  "naic_code": "57991",
   "stratum": "core",
   "ownership": "fraternal",
   "fsr": "",
@@ -564,6 +597,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Continental General",
   "lead_entity": "Continental General Insurance Co",
+  "naic_code": "71404",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "B+",
@@ -581,6 +615,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Liberty Bankers",
   "lead_entity": "Liberty Bankers Life Insurance Co",
+  "naic_code": "68543",
   "stratum": "core; low",
   "ownership": "stock",
   "fsr": "A-",
@@ -598,6 +633,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "National Guardian Life",
   "lead_entity": "National Guardian Life Insurance Co",
+  "naic_code": "66583",
   "stratum": "preneed",
   "ownership": "mutual",
   "fsr": "A",
@@ -615,6 +651,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Homesteaders Life",
   "lead_entity": "Homesteaders Life Co",
+  "naic_code": "64505",
   "stratum": "preneed",
   "ownership": "mutual",
   "fsr": "A-",
@@ -632,6 +669,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Funeral Directors Life",
   "lead_entity": "Funeral Directors Life Insurance Co",
+  "naic_code": "99775",
   "stratum": "preneed",
   "ownership": "stock",
   "fsr": "A-",
@@ -649,6 +687,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Forethought (Global Atlantic)",
   "lead_entity": "Forethought Life Insurance Co",
+  "naic_code": "91642",
   "stratum": "preneed",
   "ownership": "stock (KKR)",
   "fsr": "A",
@@ -666,6 +705,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Security National",
   "lead_entity": "Security National Life Insurance Co",
+  "naic_code": "69485",
   "stratum": "preneed",
   "ownership": "stock",
   "fsr": "A-",
@@ -683,6 +723,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Investors Heritage",
   "lead_entity": "Investors Heritage Life Insurance Co",
+  "naic_code": "64904",
   "stratum": "preneed",
   "ownership": "stock (Aquarian)",
   "fsr": "B++",
@@ -700,6 +741,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "American-Amicable / Trinity",
   "lead_entity": "Trinity Life Insurance Co",
+  "naic_code": "68594",
   "stratum": "preneed; low",
   "ownership": "stock",
   "fsr": "A",
@@ -717,6 +759,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Assurity Life",
   "lead_entity": "Assurity Life Insurance Co",
+  "naic_code": "71439",
   "stratum": "preneed",
   "ownership": "mutual",
   "fsr": "A-",
@@ -734,6 +777,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "USAA Life",
   "lead_entity": "USAA Life Insurance Co",
+  "naic_code": "69663",
   "stratum": "anchor",
   "ownership": "stock (recip)",
   "fsr": "A++",
@@ -751,6 +795,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Thrivent",
   "lead_entity": "Thrivent Financial for Lutherans",
+  "naic_code": "",
   "stratum": "anchor",
   "ownership": "fraternal",
   "fsr": "A++",
@@ -768,6 +813,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "State Farm Life",
   "lead_entity": "State Farm Life Insurance Co",
+  "naic_code": "",
   "stratum": "anchor",
   "ownership": "mutual-affil",
   "fsr": "A+",
@@ -785,6 +831,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Northwestern Mutual",
   "lead_entity": "Northwestern Mutual Life Insurance Co",
+  "naic_code": "",
   "stratum": "anchor",
   "ownership": "mutual",
   "fsr": "A++",
@@ -802,6 +849,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "New York Life",
   "lead_entity": "New York Life Insurance Co",
+  "naic_code": "66915",
   "stratum": "anchor",
   "ownership": "mutual",
   "fsr": "A++",
@@ -819,6 +867,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "MassMutual",
   "lead_entity": "Massachusetts Mutual Life Insurance Co",
+  "naic_code": "",
   "stratum": "anchor",
   "ownership": "mutual",
   "fsr": "A++",
@@ -836,6 +885,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Guardian Life",
   "lead_entity": "Guardian Life Insurance Co of America",
+  "naic_code": "64246",
   "stratum": "anchor",
   "ownership": "mutual",
   "fsr": "A++",
@@ -853,6 +903,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Citizens Inc \u2014 CICA",
   "lead_entity": "CICA Life Insurance Co of America",
+  "naic_code": "71463",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "B++",
@@ -870,6 +921,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Kansas City Life",
   "lead_entity": "Kansas City Life Insurance Co",
+  "naic_code": "65129",
   "stratum": "low",
   "ownership": "stock",
   "fsr": "A-",
@@ -887,6 +939,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "National Western Life",
   "lead_entity": "National Western Life Insurance Co",
+  "naic_code": "66850",
   "stratum": "variance",
   "ownership": "stock",
   "fsr": "A-",
@@ -904,6 +957,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Penn Mutual",
   "lead_entity": "Penn Mutual Life Insurance Co",
+  "naic_code": "",
   "stratum": "variance",
   "ownership": "mutual",
   "fsr": "A+",
@@ -921,6 +975,7 @@ window.CARRIER_REF = [
  {
   "rating_unit_name": "Lincoln Financial",
   "lead_entity": "Lincoln National Life Insurance Co",
+  "naic_code": "",
   "stratum": "variance",
   "ownership": "stock",
   "fsr": "A",
@@ -934,5 +989,131 @@ window.CARRIER_REF = [
   "rating_basis": "standalone",
   "rating_action_date": "2026-03-13",
   "source_url": "https://news.ambest.com/pr/PressContent.aspx?refnum=37125&altsrc=2"
+ },
+ {
+  "rating_unit_name": "Boston Mutual Life",
+  "lead_entity": "Boston Mutual Life Insurance Company",
+  "naic_code": "70807",
+  "stratum": "peer",
+  "ownership": "mutual",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "under_review": "",
+  "bs_assessment": "",
+  "op_assessment": "",
+  "bp_assessment": "",
+  "erm_assessment": "",
+  "rating_basis": "standalone",
+  "rating_action_date": "2025",
+  "source_url": "https://ratings.ambest.com/CompanyProfile.aspx?ambnum=6170 (blocks unconfirmed)"
+ },
+ {
+  "rating_unit_name": "Illinois Mutual Life",
+  "lead_entity": "Illinois Mutual Life Insurance Company",
+  "naic_code": "64580",
+  "stratum": "peer",
+  "ownership": "mutual",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "under_review": "",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Appropriate",
+  "rating_basis": "standalone",
+  "rating_action_date": "2025",
+  "source_url": "https://ratings.ambest.com/CompanyProfile.aspx?ambnum=6542"
+ },
+ {
+  "rating_unit_name": "USAble Life",
+  "lead_entity": "USAble Life",
+  "naic_code": "94358",
+  "stratum": "peer",
+  "ownership": "stock",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "under_review": "",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Appropriate",
+  "rating_basis": "standalone",
+  "rating_action_date": "2024-01-26",
+  "source_url": "https://www.businesswire.com/news/home/20240126208665/en/"
+ },
+ {
+  "rating_unit_name": "5 Star Life",
+  "lead_entity": "5 Star Life Insurance Company",
+  "naic_code": "15742",
+  "stratum": "peer",
+  "ownership": "stock",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "under_review": "",
+  "bs_assessment": "",
+  "op_assessment": "",
+  "bp_assessment": "",
+  "erm_assessment": "",
+  "rating_basis": "standalone",
+  "rating_action_date": "2025",
+  "source_url": "https://ratings.ambest.com/ (5 Star Life; blocks unconfirmed)"
+ },
+ {
+  "rating_unit_name": "Royal Neighbors of America",
+  "lead_entity": "Royal Neighbors of America",
+  "naic_code": "57657",
+  "stratum": "peer",
+  "ownership": "fraternal",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "under_review": "",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "rating_basis": "standalone",
+  "rating_action_date": "2020-12-15",
+  "source_url": "https://www.businesswire.com/news/home/20201215005867/en/"
+ },
+ {
+  "rating_unit_name": "Gleaner Life",
+  "lead_entity": "Gleaner Life Insurance Society",
+  "naic_code": "",
+  "stratum": "peer; low",
+  "ownership": "fraternal",
+  "fsr": "B++",
+  "icr": "bbb",
+  "outlook": "",
+  "under_review": "developing",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Marginal",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Marginal",
+  "rating_basis": "standalone",
+  "rating_action_date": "2024-11-22",
+  "source_url": "https://www.businesswire.com/news/home/20241122560161/en/"
+ },
+ {
+  "rating_unit_name": "Central States Health & Life",
+  "lead_entity": "Central States Health & Life Co of Omaha",
+  "naic_code": "61751",
+  "stratum": "peer",
+  "ownership": "stock",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "under_review": "",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Appropriate",
+  "rating_basis": "standalone",
+  "rating_action_date": "2022-07-27",
+  "source_url": "https://www.businesswire.com/news/home/20220727006117/en/"
  }
 ];

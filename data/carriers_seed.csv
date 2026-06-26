@@ -54,3 +54,10 @@ Kansas City Life,Kansas City Life Insurance Co,stock,low,,,,,,,,,,,,,,___; small
 National Western Life,National Western Life Insurance Co,stock,variance,,,,,,,,,,,,,,___; annuity/life — range
 Penn Mutual,Penn Mutual Life Insurance Co,mutual,variance,,,,,,,,,,,,,,___; diversified mutual
 Lincoln Financial,Lincoln National Life Insurance Co,stock,variance,,,,,,,,,,,,,,___; large pressured L&H — Very Strong/Strong variance
+Boston Mutual Life,Boston Mutual Life Insurance Company,mutual,peer,70807,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC 70807
+Illinois Mutual Life,Illinois Mutual Life Insurance Company,mutual,peer,64580,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC 64580
+USAble Life,USAble Life,stock,peer,94358,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC 94358
+5 Star Life,5 Star Life Insurance Company,stock,peer,15742,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC 15742
+Royal Neighbors of America,Royal Neighbors of America,fraternal,peer,57657,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC 57657
+Gleaner Life,Gleaner Life Insurance Society,fraternal,peer; low,,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC verify
+Central States Health & Life,Central States Health & Life Co of Omaha,stock,peer,61751,,,,,,,,,,,,,peer add — standalone ~Wellabe-size; SNL filer NAIC 61751

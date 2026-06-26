@@ -28,6 +28,34 @@ COLS = ["rating_unit_name", "amb_number", "naic_code", "domicile_state", "fsr", 
 # assigned to a subsidiary) beyond their own four standalone block assessments. Residuals for
 # these are expected to sit ABOVE the standalone-block prediction — that lift IS the finding,
 # not a model miss. Everything else is treated as standalone (rated on its own merits).
+# NAIC company code of the statutory filing entity (from the time-boxed SNL/NAIC research pass).
+# Best-effort — verify at pull time. Used to point the analyst at the exact entity to pull.
+NAIC = {
+    "Wellabe Group": "31119", "Physicians Mutual": "80578", "Mutual of Omaha": "69868",
+    "Guarantee Trust Life": "64211", "Aflac": "71730", "Globe Life": "92657",
+    "CNO — Bankers Life": "61263", "CNO — Washington National": "70319", "CNO — Colonial Penn": "62065",
+    "Aetna/CVS — Continental Life": "68500", "Aetna/CVS — American Continental": "12321",
+    "Cigna — Loyal American": "65722", "Cigna — American Retirement Life": "88366",
+    "Cigna — National Health": "61727", "Humana": "73288", "UnitedHealthcare": "79413",
+    "Combined Insurance (Chubb)": "62146", "Lumico (RGA)": "73504", "Pekin Life": "67628",
+    "American National — Standard Life & Accident": "86355", "American National": "60739",
+    "Kemper — Reserve National": "68462", "ManhattanLife — Assurance": "65870",
+    "ManhattanLife — Western United": "85189", "New Era Life": "78743", "Philadelphia American": "67784",
+    "Government Personnel Mutual": "63967", "Americo": "61999",
+    "Atlantic American — Bankers Fidelity": "71919", "Atlantic American — American Southern": "10235",
+    "Heartland National": "66214", "Sentinel Security Life": "68802", "Everence": "57991",
+    "Continental General": "71404", "Liberty Bankers": "68543", "National Guardian Life": "66583",
+    "Homesteaders Life": "64505", "Funeral Directors Life": "99775",
+    "Forethought (Global Atlantic)": "91642", "Security National": "69485",
+    "Investors Heritage": "64904", "American-Amicable / Trinity": "68594", "Assurity Life": "71439",
+    "USAA Life": "69663", "New York Life": "66915", "Guardian Life": "64246",
+    "Citizens Inc — CICA": "71463", "Kansas City Life": "65129", "National Western Life": "66850",
+    # standalone peers added this round
+    "Boston Mutual Life": "70807", "Illinois Mutual Life": "64580", "USAble Life": "94358",
+    "5 Star Life": "15742", "Royal Neighbors of America": "57657",
+    "Gleaner Life": "", "Central States Health & Life": "61751",
+}
+
 GROUP_MEMBERS = {
     "Aflac", "Globe Life", "CNO — Bankers Life", "CNO — Washington National",
     "CNO — Colonial Penn", "Aetna/CVS — Continental Life", "Aetna/CVS — American Continental",
@@ -96,6 +124,14 @@ ROWS = [
  ("Continental General","B+","bbb-","Stable","","Strong","Adequate","Very Limited","Appropriate","2024-11-21","initial assignment","https://news.ambest.com/newscontent.aspx?refnum=262322&altsrc=40"),
  ("Liberty Bankers","A-","a-","Stable","","Very Strong","Adequate","Neutral","Appropriate","2025-07-29","affirm","https://finance.yahoo.com/news/liberty-bankers-insurance-group-earns-173000898.html"),
  ("Citizens Inc — CICA","B++","bbb+","Stable","negative","Strong","Adequate","Limited","Appropriate","2025-10-23","affirm — ICR outlook to negative","https://news.ambest.com/pr/PressContent.aspx?refnum=36648&altsrc=2"),
+ # --- standalone Wellabe-sized peers added from the research pass (all file own statutory stmt) ---
+ ("Boston Mutual Life","A","a","Stable","","","","","","2025","affirm","https://ratings.ambest.com/CompanyProfile.aspx?ambnum=6170 (blocks unconfirmed)"),
+ ("Illinois Mutual Life","A-","a-","Stable","","Strongest","Adequate","Limited","Appropriate","2025","affirm","https://ratings.ambest.com/CompanyProfile.aspx?ambnum=6542"),
+ ("USAble Life","A","a","Stable","","Strongest","Adequate","Limited","Appropriate","2024-01-26","affirm","https://www.businesswire.com/news/home/20240126208665/en/"),
+ ("5 Star Life","A-","a-","Stable","","","","","","2025","affirm","https://ratings.ambest.com/ (5 Star Life; blocks unconfirmed)"),
+ ("Royal Neighbors of America","A","a","Stable","","Strongest","Adequate","Neutral","Appropriate","2020-12-15","upgrade","https://www.businesswire.com/news/home/20201215005867/en/"),
+ ("Gleaner Life","B++","bbb","","developing","Very Strong","Marginal","Neutral","Marginal","2024-11-22","downgrade — under review developing","https://www.businesswire.com/news/home/20241122560161/en/"),
+ ("Central States Health & Life","A-","a-","Stable","","Very Strong","Adequate","Limited","Appropriate","2022-07-27","affirm","https://www.businesswire.com/news/home/20220727006117/en/"),
 ]
 
 
@@ -107,8 +143,8 @@ def main():
             name = r[0]
             rest = r[1:]
             basis = "group-member" if name in GROUP_MEMBERS else "standalone"
-            # row = name, amb_number(blank), naic(blank), domicile(blank), 11 fields, rating_basis
-            w.writerow([name, "", "", "", *rest, basis])
+            # row = name, amb_number(blank), naic_code, domicile(blank), 11 fields, rating_basis
+            w.writerow([name, "", NAIC.get(name, ""), "", *rest, basis])
     print(f"wrote {OUT} ({len(ROWS)} carriers; "
           f"{sum(1 for r in ROWS if r[5])} with balance-sheet assessment)")
 

@@ -46,13 +46,24 @@ American National · Pekin.
 Skipping per "fewer giant carriers": **Thrivent, State Farm Life, Northwestern Mutual, MassMutual,
 Penn Mutual.** *(New York Life, Guardian, USAA, Lincoln, American National are already loaded — keeping them, all info is good info.)*
 
-## ➕ Proposed standalone peers to ADD (Wellabe-sized, life **and** health)
-These are independent carriers (not large-group subs, so they won't distort the group-support
-analysis). I'll verify each files its own statutory statement on SNL and pull its AM Best rating
-before you download — confirm the list and I'll fold them into the roster:
-Gerber Life · Boston Mutual Life · Trustmark Insurance · Illinois Mutual Life · USAble Life ·
-5 Star Life · Royal Neighbors of America · Gleaner Life · Central States Health & Life (Omaha) ·
-Pan-American Life · Cincinnati Life · Texas Life · Companion Life · Standard Security Life (NY).
+## ➕ Standalone peers to ADD — researched (NAIC confirmed; all file their own statutory stmt)
+These came back **standalone** (independent — won't distort the group-support analysis) and are
+now in the roster. Pull each (Life/Fraternal Highlights) by NAIC:
 
-> NAIC codes intentionally omitted — I'll confirm them (and SNL availability) in a research pass so
-> you don't chase a wrong code. Look up by the entity name as written above.
+| Peer | Filing entity | NAIC | AM Best |
+|---|---|---|---|
+| Boston Mutual Life | Boston Mutual Life Insurance Company | 70807 | A |
+| Illinois Mutual Life | Illinois Mutual Life Insurance Company | 64580 | A- (Strongest/Adequate/Limited) |
+| USAble Life | USAble Life | 94358 | A (Strongest/Adequate/Limited) |
+| 5 Star Life | 5 Star Life Insurance Company | 15742 | A- |
+| Royal Neighbors of America | Royal Neighbors of America | 57657 | A (Strongest/Adequate/Neutral) |
+| Gleaner Life | Gleaner Life Insurance Society | *verify* | B++ (under review developing) |
+| Central States Health & Life | Central States Health & Life Co of Omaha | 61751 | A- (Very Strong/Adequate/Limited) |
+
+**Researched but turned out GROUP-owned (skip — would add group-support noise):** Gerber Life
+(Western & Southern), Trustmark, Cincinnati Life (Cincinnati Financial), Texas Life (Wilton Re),
+Companion Life SC (BCBS-SC), Pan-American Life, Standard Security Life NY (Delphi/Tokio Marine).
+
+> Full NAIC + filing-entity table for the **entire** roster is now in `data/assessments.csv`
+> (and baked into the tool's `carriers.js`), so every pull can be matched to the exact SNL entity.
+> NAIC codes are from a time-boxed research pass — verify if a pull comes back empty.

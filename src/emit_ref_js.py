@@ -34,6 +34,7 @@ def main():
         out.append({
             "rating_unit_name": name,
             "lead_entity": ro.get("lead_entity", ""),
+            "naic_code": (a.get("naic_code") or ro.get("naic_code") or ""),
             "stratum": ro.get("stratum", ""),
             "ownership": ro.get("ownership", ""),
             "fsr": a.get("fsr", ""), "icr": a.get("icr", ""),
