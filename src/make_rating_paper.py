@@ -166,24 +166,27 @@ def fig_ladder():
 
 
 def fig_msstress():
-    fig, ax = plt.subplots(figsize=(7.0, 3.2), constrained_layout=True)
-    ax.axis("off")
-    ax.text(0.5, 0.92, "A Medicare Supplement shock pushes on three blocks at once",
-            ha="center", fontsize=12.5, fontweight="bold", color=INK, transform=ax.transAxes)
-    # source box
-    ax.add_patch(plt.Rectangle((0.34, 0.62), 0.32, 0.16, fc="#FBE9E7", ec=WELL, lw=1.4, transform=ax.transAxes))
-    ax.text(0.5, 0.70, "Rate, regulatory, or\ncompetitive shock to Med Supp", ha="center", va="center",
-            fontsize=9.5, color=WELL, fontweight="bold", transform=ax.transAxes)
-    blocks = [(0.16, "Earnings", "loss ratios rise,\nthe turn is delayed"),
-              (0.5, "Franchise", "our largest line\nis concentrated by state"),
-              (0.84, "Capital", "weaker earnings\ndraw down surplus")]
-    for x, title, sub in blocks:
-        ax.annotate("", xy=(x, 0.42), xytext=(0.5, 0.62),
-                    arrowprops=dict(arrowstyle="-|>", color="#8A8A8A", lw=1.5), transform=ax.transAxes)
-        ax.add_patch(plt.Rectangle((x - 0.14, 0.18), 0.28, 0.22, fc="#EEF2F6", ec=ACCENT, lw=1.2, transform=ax.transAxes))
-        ax.text(x, 0.34, title, ha="center", fontsize=10.5, fontweight="bold", color=ACCENT, transform=ax.transAxes)
-        ax.text(x, 0.245, sub, ha="center", fontsize=8.5, color=INK, transform=ax.transAxes)
-    fig.savefig(FIG / "rp_msstress.png"); plt.close(fig)
+    fig = plt.figure(figsize=(8.4, 2.7))
+    ax = fig.add_axes([0, 0, 1, 1]); ax.axis("off"); ax.set_xlim(0, 1); ax.set_ylim(0, 1)
+    ax.text(0.5, 0.91, "How Med Supp concentration would actually move us: through earnings",
+            ha="center", fontsize=12.5, fontweight="bold", color=INK)
+    chain = [(0.13, "#FBE9E7", WELL, "Concentrated\nMed Supp book"),
+             (0.38, "#FBE9E7", WELL, "Shock: rate,\nreg, or competitor"),
+             (0.63, "#EEF2F6", ACCENT, "Loss-ratio\nvolatility"),
+             (0.88, "#EEF2F6", ACCENT, "Operating slips,\nrating to A-")]
+    bw, bh, by = 0.205, 0.23, 0.50
+    for i, (x, fc, ec, txt) in enumerate(chain):
+        ax.add_patch(plt.Rectangle((x - bw / 2, by), bw, bh, fc=fc, ec=ec, lw=1.3))
+        ax.text(x, by + bh / 2, txt, ha="center", va="center", fontsize=8.7, color=ec, fontweight="bold")
+        if i < len(chain) - 1:
+            ax.annotate("", xy=(chain[i + 1][0] - bw / 2 - 0.004, by + bh / 2),
+                        xytext=(x + bw / 2 + 0.004, by + bh / 2),
+                        arrowprops=dict(arrowstyle="-|>", color="#8A8A8A", lw=1.7))
+    ax.text(0.5, 0.34, "Franchise grade holds at Neutral. Capital is touched only indirectly, through weaker earnings.",
+            ha="center", fontsize=8.6, color=MUTE, style="italic")
+    ax.text(0.5, 0.18, "Same shape as Pekin: a concentrated book, a shock, then a Negative outlook from earnings, not a franchise cut.",
+            ha="center", fontsize=8.6, color=MUTE, style="italic")
+    fig.savefig(FIG / "rp_msstress.png", dpi=150); plt.close(fig)
 
 
 # ============================================================ docx helpers
@@ -480,16 +483,33 @@ def build():
            ["A one-letter dip to A-", "about 20%", "The balance-sheet grade slips at the trough, or the earnings turn comes late. Recoverable as results improve."],
            ["Below A- to B++", "about 5%", "Capital and earnings slip together near the trough. The real tail, and the one this paper is about."]])
 
-    H(doc, "10.  Medicare Supplement concentration, the stress that hits everything at once")
-    body(doc, "There is one scenario that does not respect the neat one-lever-at-a-time logic, and it deserves its "
-              "own place. Medicare Supplement is our largest line, and our sales are concentrated in our top states. "
-              "A shock to that line, whether a regulatory change, a wave of rate pressure, or a competitive move, "
-              "would not land in one place. It would push on our earnings, because loss ratios would rise and the "
-              "turn would be delayed. It would push on our franchise, because our most concentrated line is the one "
-              "under pressure. And it would push on our capital, because weaker earnings draw down surplus faster. "
-              "This is the event that can move several blocks at the same time, which is why it is the concentration "
-              "we watch most closely even though the franchise grade is otherwise stable.")
-    img(doc, "rp_msstress.png", "Figure 6. A single Medicare Supplement shock pushes on earnings, franchise, and capital together, which is how a one-letter risk becomes a two-letter one.")
+    H(doc, "10.  Medicare Supplement concentration, an earnings risk more than a franchise one")
+    body(doc, "Medicare Supplement is our largest line, and our sales are concentrated in our top states. The natural "
+              "worry is that this concentration threatens our franchise grade. It is worth being precise about how it "
+              "would actually hurt us, because the intuition points at the wrong block.")
+    body(doc, "AM Best's business-profile grade is driven mostly by scale, market position, and product breadth, and "
+              "pure geographic concentration rarely lowers a diversified carrier's grade on its own. The peers prove "
+              "it. HCSC writes Medicare Supplement in only a handful of states and is assessed Favorable, carried by "
+              "the scale of its overall health franchise. Pekin Life is a close match to us, multi-line with Medicare "
+              "Supplement in its book and operating in 22 states but heavily concentrated in Illinois, and it holds "
+              "Neutral, the same grade we do. Our own franchise is broader than either the small specialists or a "
+              "single-state carrier, with multiple senior-market lines, more than 40 states, and several distribution "
+              "channels. State concentration in one line is unlikely to move that grade.")
+    body(doc, "Where the concentration would bite is earnings. A regulatory change, a wave of rate pressure, or a "
+              "competitive move aimed at our top Medicare Supplement states would raise loss ratios and delay or "
+              "reverse the very turn the whole rating depends on. That lands on operating performance, the block that "
+              "is already most in play and the one that realistically moves us. The concentration is dangerous "
+              "because it makes an earnings slip both more likely and deeper, not because it lowers our franchise "
+              "grade. And if that earnings slip arrives near the capital trough, it is exactly the both-levers case "
+              "from the previous section.")
+    img(doc, "rp_msstress.png", "Figure 6. Med Supp concentration would move us through earnings, the block already in play, rather than through the franchise grade.")
+    body(doc, "Pekin is the real-world template, through the right channel. Its concentration risk is property "
+              "catastrophe in the Midwest, a different peril, but the shape is identical: a concentrated book, a "
+              "shock in the form of severe storms, and the result was a move to a Negative outlook in 2024 driven by "
+              "earnings pressure, since restored to Stable. The geographic concentration acted through earnings and "
+              "the outlook, not through a franchise downgrade. For us the concentrated book is Medicare Supplement "
+              "and the shock would be regulatory, rate, or competitive, but the mechanism is the same, which is why "
+              "we watch this as an operating-performance risk.")
 
     H(doc, "11.  What we watch, and what is in our control")
     bullet(doc, "The BCAR trajectory, because BCAR and not the RBC ratio sets the balance-sheet grade. If BCAR holds well above 25% through the trough, the Strongest grade is more likely to survive the RBC decline.")
@@ -509,10 +529,11 @@ def build():
               "slip takes us to A- as well, and that move comes with warning and is reversible. The case that takes "
               "us to B++ is both levers slipping together, and the reason it is worth real attention is timing, "
               "because the plan stresses capital and earnings in the same two years, with earnings already at the "
-              "bottom of Adequate. A Medicare Supplement shock is the one event that could push capital, earnings, "
-              "and franchise at once, so it is the concentration we watch most. The things in our control are the "
-              "combined-ratio turn, the BCAR trajectory, disciplined capital actions, and reading the outlook as the "
-              "early signal it is.")
+              "bottom of Adequate. Our Medicare Supplement state concentration is best understood as part of that "
+              "earnings risk. It would not lower our franchise grade, but it makes an earnings slip more likely and "
+              "deeper, which is the slip that costs us a letter and, near the capital trough, the one that could "
+              "reach B++. The things in our control are the combined-ratio turn, the BCAR trajectory, disciplined "
+              "capital actions, and reading the outlook as the early signal it is.")
 
     note = doc.add_paragraph(); rn = note.add_run(
         "Sources and method. Wellabe's rating, grades, and financials come from the AM Best Credit Report for "
