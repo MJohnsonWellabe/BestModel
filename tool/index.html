@@ -82,6 +82,7 @@
   <button data-view="op">Operating</button>
   <button data-view="bp">Business</button>
   <button data-view="notch">Notching</button>
+  <button data-view="bsfsr">BS&nbsp;vs&nbsp;FSR</button>
   <button data-view="wellabe">Wellabe</button>
   <button data-view="input">＋&nbsp;Data</button>
 </nav>
@@ -316,7 +317,7 @@ function render(){
   if(isChart && !CARRIERS.length){ emptyState(); return; }
   if(isChart){ const ch=document.getElementById("chart");   // clear any leftover empty-state HTML
     if(!ch.querySelector(".plotly")) ch.innerHTML=""; }
-  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch,input:viewInput,wellabe:viewWellabe}[VIEW])();
+  ({bs:viewBS,op:viewOP,bp:viewBP,notch:viewNotch,bsfsr:viewBSFSR,input:viewInput,wellabe:viewWellabe}[VIEW])();
 }
 function emptyState(){
   Plotly.purge("chart");
@@ -543,9 +544,55 @@ function drawForest(div,pts){
   }),{margin:{l:8,r:12,t:34,b:10}}),CFG).then(bindTap);
 }
 
+/* ============ balance-sheet grade vs final letter rating ============ */
+function viewBSFSR(){
+  const tiers=BS_TIERS.filter(t=>active().some(c=>c.bs_assessment===t));
+  const yIdx={}; tiers.forEach((t,i)=>yIdx[t]=i);
+  // deterministic jitter so points in the same (grade, letter) cell separate without re-shuffling on redraw
+  const jit=(s,seed)=>{let h=seed>>>0;for(let i=0;i<s.length;i++)h=(Math.imul(h,31)+s.charCodeAt(i))>>>0;return (h%1000)/1000-0.5;};
+  const pts=active().map(c=>{
+      const f=fsrIdx(c.fsr)>=0?fsrIdx(c.fsr):fsrIdx(toFsr(c.icr));
+      return {c,f,t:yIdx[c.bs_assessment]};
+    }).filter(p=>p.f>=0 && p.t!=null);
+  const ch=document.getElementById("chart");
+  if(!pts.length){ Plotly.purge("chart"); ch.innerHTML="<div style='padding:24px;color:var(--muted)'>No rated carriers loaded.</div>";
+    document.getElementById("legend").innerHTML=""; document.getElementById("finding").innerHTML="";
+    document.getElementById("ncount").textContent=""; document.getElementById("detail").innerHTML=""; return; }
+  const others=pts.filter(p=>!p.c.is_wellabe);
+  const lbl=c=>`${c.rating_unit_name}<br>${c.bs_assessment} · FSR ${c.fsr||toFsr(c.icr)||"—"}`;
+  const scat={x:others.map(p=>p.f+jit(p.c.rating_unit_name,7)*0.58),
+    y:others.map(p=>p.t+jit(p.c.rating_unit_name,131)*0.5),
+    customdata:others.map(p=>p.c),text:others.map(p=>lbl(p.c)),type:"scatter",mode:"markers",
+    marker:{size:11,color:others.map(p=>BS_COLOR[p.c.bs_assessment]),line:{width:.5,color:"#fff"}},
+    hovertemplate:"%{text}<extra></extra>",showlegend:false};
+  const traces=[scat];
+  const w=pts.find(p=>p.c.is_wellabe);
+  if(w)traces.push({x:[w.f],y:[w.t],customdata:[w.c],text:[lbl(w.c)+" (Wellabe)"],type:"scatter",mode:"markers",
+    marker:{size:17,color:BS_COLOR[w.c.bs_assessment],symbol:"diamond",line:{width:2.5,color:"#0B1C2C"}},
+    hovertemplate:"%{text}<extra></extra>",showlegend:false});
+  const fs=pts.map(p=>p.f),minF=Math.min(...fs),maxF=Math.max(...fs);
+  ch.style.height=Math.max(360,tiers.length*78)+"px";
+  Plotly.newPlot("chart",traces,LAYOUT({margin:{l:82,r:14,t:12,b:44},
+    xaxis:{tickvals:FSR_SCALE.map((_,i)=>i),ticktext:FSR_SCALE,range:[minF-0.7,maxF+0.7],
+      gridcolor:"#ECE8DD",title:{text:"Final rating (FSR)",font:{size:12},standoff:8}},
+    yaxis:{tickvals:tiers.map((_,i)=>i),ticktext:tiers,range:[tiers.length-0.55,-0.55],
+      gridcolor:"#F0EDE4",automargin:true}}),CFG).then(bindTap);
+  document.getElementById("legend").innerHTML=
+    tiers.map(t=>`<span><i style="background:${BS_COLOR[t]}"></i>${t}</span>`).join("")+`<span class="wmark">◆ Wellabe</span>`;
+  const sFsr=[...new Set(pts.filter(p=>p.c.bs_assessment==="Strongest").map(p=>p.c.fsr).filter(Boolean))].sort((a,b)=>fsrIdx(a)-fsrIdx(b));
+  document.getElementById("finding").innerHTML=
+    `Each dot is a carrier placed by its <b>balance-sheet grade</b> (vertical) and its <b>final letter rating</b> (horizontal). `+
+    `Capital tier alone does not set the letter: `+
+    (sFsr.length>1?`carriers with a <b>Strongest</b> balance sheet here span <b>${sFsr[0]} to ${sFsr[sFsr.length-1]}</b>, `:``)+
+    `and a weaker balance sheet can still carry an A when the franchise and earnings do the work (e.g. Globe Life at Strong). `+
+    `Wellabe (◆) sits at <b>Strongest / ${w?w.c.fsr:"A"}</b>.`;
+  document.getElementById("ncount").textContent="n = "+pts.length+" rated carriers";
+  if(w)showDetail(w.c);
+}
+
 /* ============================ export ============================ */
 document.getElementById("exportBtn").onclick=async()=>{
-  const names={bs:"BS-2_rbc_vs_assetrisk",op:"OP-1_roe_by_assessment",bp:"BP-1_assets_vs_hhi",notch:"N-1_predicted_vs_actual"};
+  const names={bs:"BS-2_rbc_vs_assetrisk",op:"OP-1_roe_by_assessment",bp:"BP-1_assets_vs_hhi",notch:"N-1_predicted_vs_actual",bsfsr:"BS-3_grade_vs_FSR"};
   const base=names[VIEW];
   await Plotly.downloadImage("chart",{format:"svg",filename:base,height:720,width:1000});
   // CSV of the active frame for this view
