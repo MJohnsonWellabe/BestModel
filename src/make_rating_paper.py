@@ -309,15 +309,46 @@ def build():
               "through independent marketing organizations, independent agents, and preneed funeral homes. We do not "
               "sell through banks or broker-dealers, and we do not write the kind of long-duration annuity business "
               "where buyers screen hard on a minimum letter.")
-    body(doc, "Because of that, the rating matters to us in specific places. It matters in preneed, where funeral-home "
-              "programs place obligations that run for decades and prefer strong, stable carriers. It matters in "
-              "reinsurance, where our counterparties price our rating into the business we assume and cede. It matters "
-              "when we raise capital, including the surplus note we are working toward, where the rating affects "
-              "whether we can place it and at what cost. In our agent Medicare Supplement and supplemental-health "
-              "channels it matters less, because the product is standardized and backed by state guaranty funds, so "
-              "agents place business on price, commission, and service more than on the letter.")
+    body(doc, "Because of that, the rating matters most where our distribution is rating-sensitive: preneed, "
+              "reinsurance, and raising capital, including the surplus note we are working toward. In our agent "
+              "Medicare Supplement and supplemental-health channels it matters much less, because the product is "
+              "standardized and guaranty-backed, so agents place business on price, commission, and service more "
+              "than on the letter. The next section puts real examples behind that.")
 
-    H(doc, "2.  How AM Best builds the letter")
+    H(doc, "2.  What a rating change actually does to the business")
+    body(doc, "Before the mechanics, it helps to know what a notch is worth in the real world, because the answer is "
+              "not the same for every carrier. The impact of a move depends almost entirely on how rating-sensitive "
+              "your distribution is. In advisor-sold annuities, bank and broker-dealer channels, and institutional "
+              "and reinsurance relationships, the letter is close to a gate. In guaranty-backed, agent-sold Medicare "
+              "Supplement, it is much closer to a formality.")
+    body(doc, "The clearest cautionary case is Genworth. A little over a decade ago it carried A-range ratings. A "
+              "series of downgrades tied to long-term care losses pushed its main life carriers down to the B and "
+              "C++ range. In its own public filings Genworth spelled out the mechanism: a downgrade could reduce new "
+              "sales, damage relationships with the intermediaries who actually place the business, and increase "
+              "policy surrenders and withdrawals. In the end it stopped selling long-term care and life through "
+              "those companies and put the block into runoff. That is the full chain, from a lower letter to lost "
+              "distribution to weaker persistency, in one company.")
+    body(doc, "The A- line is the one that matters most, and it is largely a distribution rule rather than a "
+              "solvency one. In advisor and annuity channels the common guidance is to place business only with "
+              "carriers rated A- or better, so a drop below A- quietly removes a carrier from many shelves even "
+              "though it can still pay every claim. That is why we treat A- as the line to defend.")
+    body(doc, "For our channels specifically, the impact is more muted, and the peers show it. ManhattanLife sells "
+              "Medicare Supplement and supplemental health in the same independent-agent channels we use at a B++ "
+              "rating, and its Western United arm does so at B+. Both compete actively below A-, because in "
+              "guaranty-backed senior health the agent places business on price, commission, underwriting speed, and "
+              "service more than on the letter. So an A- outcome for us would be uncomfortable but not damaging "
+              "across most of our book. Where a drop below A- would actually cost us is narrower and real: preneed, "
+              "where funeral-home programs prefer strong, stable carriers for decades-long obligations; reinsurance, "
+              "where counterparties price our rating into terms; and capital raising, including the surplus note. "
+              "Upgrades work in reverse but more gently. They mostly restore shelf access and give the marketing and "
+              "reinsurance teams a better number to lead with, rather than producing a sales jump on their own.")
+    body(doc, "One honest limit. Carriers rarely publish clean figures tying a single notch to sales, net promoter "
+              "scores, or persistency, so most of this is directional rather than precise. The documented effects "
+              "are on new-business and distribution access, and, at severe multi-notch downgrades, on surrenders. "
+              "The takeaway for us is calibration, not alarm: an A- would be manageable in our channels, and the "
+              "real damage begins below A-, concentrated in preneed, reinsurance, and capital raising.")
+
+    H(doc, "3.  How AM Best builds the letter")
     body(doc, "The rating runs off published tables, so we can read our own rating and a competitor's the same way. "
               "The balance sheet sets a starting point, and the other three pieces move it up or down.")
     body(doc, "Step one. The balance-sheet grade sets a starting credit rating:")
@@ -336,7 +367,7 @@ def build():
               "worked example, a Strongest balance sheet opens at A. Hold the other three at no change and the carrier "
               "stays at A. Let two of them each slip a notch and the same well-capitalized company lands at B++.")
 
-    H(doc, "3.  The two capital yardsticks: RBC and BCAR")
+    H(doc, "4.  The two capital yardsticks: RBC and BCAR")
     body(doc, "This is the part most worth slowing down on, because two different measures get used for two different "
               "jobs, and they do not always agree.")
     body(doc, "The first is NAIC risk-based capital, which we report on the CAL basis and which runs around 648% for "
@@ -368,13 +399,14 @@ def build():
     # ---------- PART II
     part(doc, "Part II.  Where Wellabe stands")
 
-    H(doc, "4.  Our rating today, and how we got to A")
+    H(doc, "5.  Our rating today, and how we got to A")
     body(doc, "Best grades us Strongest on the balance sheet, Adequate on operating performance, Neutral on business "
               "profile, and Appropriate on risk management. The balance sheet opens us at A, the other three net to no "
               "change, and we land at A with a Stable outlook.")
     body(doc, "The thing shaping everything else is our recent operating performance. We have run losses for three "
-              "straight years, and the losses have grown each year. Our accident-and-health combined ratio climbed "
-              "every year through 2025, and surplus has come down since 2021.")
+              "straight years, and the losses have grown each year. Our accident-and-health combined ratio, which "
+              "is claims plus expenses as a percent of premium (so anything above 100% means the block pays out "
+              "more than it takes in), climbed every year through 2025, and surplus has come down since 2021.")
     table(doc, ["Year", "Net income", "Capital and surplus", "A&H combined ratio", "BCAR"],
           [["2021", "+$22M", "$630M", "95%", "n/a"], ["2022", "-$1M", "$615M", "99%", "73.4%"],
            ["2023", "-$21M", "$602M", "103%", "73.0%"], ["2024", "-$52M", "$560M", "109%", "71.2%"],
@@ -390,7 +422,7 @@ def build():
               "the series. If that holds, it is the clearest evidence we can put in front of Best at the next review "
               "that the combined ratio has passed its inflection point and the plan is playing out.")
 
-    H(doc, "5.  Our capital, and where the plan takes it")
+    H(doc, "6.  Our capital, and where the plan takes it")
     body(doc, "Here is the core of the capital question. Both of our capital measures are coming down, and the plan "
               "intends them to continue down through about 2029.")
     body(doc, "BCAR has fallen from 73.4% at year-end 2022 to 67.3% at year-end 2025, a little over six points in "
@@ -406,18 +438,19 @@ def build():
     body(doc, "So the real question is straightforward. Does our balance-sheet grade stay Strongest through the "
               "trough, or does it slip to Very Strong. The evidence cuts both ways, and we should hold both halves. "
               "On one side, the RBC ratio at the trough lands in Very Strong territory on the peer read, which argues "
-              "for a lower grade. On the other side, Best itself has said in its rating drivers that it expects us to "
+              "for a lower grade. On the other side, Best itself has said, in its outlook, that it expects us to "
               "maintain the Strongest assessment, and BCAR, the measure that drives the grade, has much more room "
               "than the RBC ratio suggests, so it may still compute Strongest at a 400% RBC level. It is also worth "
               "remembering that BCAR alone does not set the balance-sheet grade. Best weighs asset quality, reserve "
               "adequacy, financial flexibility, and the holding-company structure alongside it, so the grade is a "
               "broader judgement than any single capital number. We will not know where it lands until Best re-runs "
               "the analysis each year on our actual balance sheet. The prudent planning assumption is that a slip "
-              "from Strongest to Very Strong is a real possibility at the trough, more so if asset risk keeps "
-              "drifting up at the same time, which is a balance-sheet-quality factor Best watches and worth "
-              "confirming against the current report.")
+              "from Strongest to Very Strong is a real possibility at the trough, more so if asset risk drifts up. Best's own report "
+              "notes that our invested assets are mainly investment-grade fixed income but carry a high allocation "
+              "to NAIC class 2 bonds, with modest exposure to equities and mortgage loans, which is the "
+              "balance-sheet-quality factor to keep an eye on.")
 
-    H(doc, "6.  How we compare to peers")
+    H(doc, "7.  How we compare to peers")
     body(doc, "Reading the same four grades across the competitive set shows where the letters really come from. The "
               "table is sorted by rating, then by capital. The capital column and the rating do not move together.")
     table(doc, ["Carrier", "Rating", "Balance sheet", "Operating", "Business profile", "ERM", "RBC (CAL)"],
@@ -428,7 +461,8 @@ def build():
               "carriers. What sorts the ratings is operating performance and business profile. Second, we stand out "
               "in two directions. We do very well on capital, holding one of only a handful of Strongest grades in "
               "the sample and an RBC ratio in the top quartile of the group. And we do poorly on return, with a "
-              "five-year return on equity near the bottom of the whole group, held at Adequate where most A-rated "
+              "five-year return on equity (net income across the whole business measured against surplus, not an "
+              "investment return) near the bottom of the whole group, held at Adequate where most A-rated "
               "peers are graded Strong. The typical A-rated carrier is the reverse of us, a Very Strong balance sheet "
               "paired with Strong operating performance. We have held our A with capital and a plan Best believes "
               "where others hold it with profits.")
@@ -448,7 +482,7 @@ def build():
               "other two, business profile and risk management, are slow to change and unlikely to move us in either "
               "direction. We take each in turn.")
 
-    H(doc, "7.  Lever one: the balance sheet")
+    H(doc, "8.  Lever one: the balance sheet")
     body(doc, "If the RBC and BCAR decline costs us the Strongest grade, the math is clean. Strongest opens us at A. "
               "A grade of Very Strong, one tier down, opens at A-. A grade of Strong, two tiers down, also opens at "
               "A- on its strong end. So a slip in the balance-sheet grade, by one tier or two, most likely costs us "
@@ -461,7 +495,7 @@ def build():
               "itself, take a carrier below A-. To fall below A- on capital alone, the balance sheet would have to "
               "drop all the way to Adequate, which is far from where our plan goes.")
 
-    H(doc, "8.  Lever two: operating performance")
+    H(doc, "9.  Lever two: operating performance")
     body(doc, "The second lever is operating performance, and Best is holding us at Adequate on a forecast: losses "
               "that crest and then ease as the Medicare Supplement block matures. As long as results track that "
               "forecast we stay at Adequate. If losses run well past it, the grade slips toward Marginal, and on its "
@@ -479,7 +513,7 @@ def build():
               "combined ratio. It reached 116% in 2025 and is running near 113% in 2026 to date, which would be the "
               "first improvement in the series and the clearest sign that the turn Best is counting on has begun.")
 
-    H(doc, "9.  Lever three: business profile")
+    H(doc, "10.  Lever three: business profile")
     body(doc, "Business profile is Best's read of our franchise: scale, market position, product and geographic "
               "diversification, distribution, and pricing. Best grades us Neutral, and it is the slowest of the four "
               "blocks to change. We earn Neutral on genuine breadth. We are multi-line across the senior market, "
@@ -505,7 +539,7 @@ def build():
               "move to a Negative outlook in 2024 driven by earnings, since restored to Stable. The concentration "
               "acted through operating performance and the outlook, not through a business-profile downgrade.")
 
-    H(doc, "10.  Lever four: risk management")
+    H(doc, "11.  Lever four: risk management")
     body(doc, "Risk management is graded Appropriate, and it is effectively a fixed block for us. The grade rarely "
               "moves a rating, and the upside is essentially unavailable. In our sample of roughly 48 carriers, only "
               "three earned a grade above Appropriate, Aflac, Guardian, and New York Life, all far larger and more "
@@ -517,7 +551,7 @@ def build():
               "which are the blocks Best actually downgrades. The grade is the label on how well we avoid that. The "
               "job is to keep it Appropriate and to execute.")
 
-    H(doc, "11.  The two levers that move us, together")
+    H(doc, "12.  The two levers that move us, together")
     body(doc, "That leaves the two blocks that can move us, capital and operating performance. Each on its own costs "
               "one letter, to A-. Both together cost two, to B++. The math is direct: a Very Strong balance sheet "
               "with Marginal operating performance opens at bbb+, which is B++. That is exactly GPM today.")
@@ -534,7 +568,7 @@ def build():
            ["A one-letter dip to A-", "about 20%", "The balance-sheet grade slips at the trough, or the operating turn comes late. Recoverable as results improve."],
            ["Below A- to B++", "about 5%", "Capital and operating performance slip together near the trough. The tail this paper is about."]])
 
-    H(doc, "12.  What we watch, and what is in our control")
+    H(doc, "13.  What we watch, and what is in our control")
     bullet(doc, "The BCAR trajectory, because BCAR, not the RBC ratio, is the main input to the balance-sheet grade. The 2026 Best report will be especially telling: it will carry substantial losses and the new surplus note, which is lower-quality capital, so it gives us the first real read on what the trough does to BCAR and to the overall balance-sheet grade.")
     bullet(doc, "The combined ratio, the clearest sign of whether the operating turn is arriving. The move from 116% in 2025 toward 113% in 2026 is the first evidence we can show Best that the turn has begun.")
     bullet(doc, "Whether Best still believes the plan. Best's judgement that our growth turns to profit is what holds operating performance at Adequate today. That judgement is doing real work, and the more our results visibly track the plan we showed them, the more likely Best keeps it and the rating.")
