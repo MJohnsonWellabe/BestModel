@@ -21,3 +21,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Curated PUBLIC subset (bluebook-derivable) — committed on purpose so the site auto-loads it.
+!tool/public_data.json

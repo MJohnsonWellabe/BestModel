@@ -89,6 +89,11 @@
 
 <main>
   <div id="chartCard" class="card">
+    <div id="bsModeRow" style="display:none;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+      <button class="chip bsmode active" data-bsmode="rbc">RBC × rating</button>
+      <button class="chip bsmode" data-bsmode="bcar">BCAR × rating</button>
+      <button class="chip bsmode" data-bsmode="bcarrbc">BCAR × RBC</button>
+    </div>
     <div id="axisToggleRow" style="display:none;justify-content:flex-end;margin-bottom:6px">
       <button id="axisToggle" class="chip">＋ add 2nd axis</button>
     </div>
@@ -243,10 +248,16 @@ function exportAllCSV(){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ambest_decoder_all_metrics.csv";a.click();
 }
 
-function boot(){
-  // Start empty every session — no preload. Clear any stale cache from earlier versions.
-  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
-  initInput(); buildFilters(); render();
+async function boot(){
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}   // no stale cache
+  initInput();
+  // Auto-load the curated PUBLIC dataset (bluebook-derivable + public AM Best assessments).
+  // Users can still drop in their own S&P pulls via the +Data tab to replace it.
+  try{
+    const r=await fetch("./public_data.json",{cache:"no-store"});
+    if(r.ok){ const j=await r.json(); if(j&&j.carriers&&j.carriers.length){ setLoaded(j.carriers); return; } }
+  }catch(e){/* fall through to empty */}
+  buildFilters(); render();
 }
 
 /* ============================ helpers ============================ */
@@ -313,7 +324,9 @@ function render(){
   document.getElementById("findingCard").style.display=isChart?"block":"none";
   document.querySelector(".actionbar").style.display=isChart?"flex":"none";
   const isBlock=["bs","op","bp"].includes(VIEW);
-  document.getElementById("axisToggleRow").style.display=(isBlock&&CARRIERS.length)?"flex":"none";
+  const showAxis=isBlock&&CARRIERS.length&&!(VIEW==="bs"&&BSMODE==="bcarrbc");
+  document.getElementById("axisToggleRow").style.display=showAxis?"flex":"none";
+  document.getElementById("bsModeRow").style.display=(VIEW==="bs"&&CARRIERS.length)?"flex":"none";
   if(isChart && !CARRIERS.length){ emptyState(); return; }
   if(isChart){ const ch=document.getElementById("chart");   // clear any leftover empty-state HTML
     if(!ch.querySelector(".plotly")) ch.innerHTML=""; }
@@ -370,6 +383,7 @@ function showDetail(c){
 
 /* ===================== unified block views (1-axis default + 2nd-axis toggle) ===================== */
 let SECOND=false;  // 2nd-axis toggle, shared across the three block views
+let BSMODE="rbc";  // Balance-sheet tab sub-view: "rbc" | "bcar" | "bcarrbc"
 function bsCommentary(c){
   const rbc=c.rbc_cal_pct,hrl=c.higher_risk_leverage_partial,bi=c.below_ig_pct,sn=c.surplus_notes_pct,t=c.bs_assessment||"unrated";
   const p=[`<b>${c.rating_unit_name}</b> — FSR <b>${c.fsr||"—"}</b>, balance sheet <b>${t}</b>.`];
@@ -433,6 +447,14 @@ const VIEWCFG={
       prim:{k:"total_assets_usd",label:"Total assets ($B, log)",log:true,scale:1e6},
       sec:{k:"hhi_segments",label:"Concentration — segment HHI (1 = single line)"}}
 };
+// BCAR-vs-rating: same tiers/asset-risk 2nd axis as the RBC view, but the x-metric is Best's BCAR.
+VIEWCFG.bs_bcar=Object.assign({},VIEWCFG.bs,{
+  prim:{k:"bcar_score",label:"BCAR — capital to spare at 99.6% VaR (%)",log:false,scale:1},
+  topFinding:d=>{document.getElementById("finding").innerHTML= d.length<3
+    ? `BCAR is Best's own capital model and the measure that actually drives the balance-sheet grade. Only <b>${d.length}</b> carrier${d.length===1?"":"s"} has a BCAR score loaded so far — add peers' 99.6% VaR BCAR (from their Best's Credit Reports) to fill this in. The Strongest bar is ~25%; Wellabe (◆) sits at 67.3%.`
+    : `Each box is the BCAR distribution within a balance-sheet tier. The Strongest bar is ~25% capital to spare at the 99.6% stress, and stronger tiers cluster higher. Wellabe (◆) sits at 67.3%.`;},
+  comment:c=>`<b>${c.rating_unit_name}</b> — BCAR ${c.bcar_score!=null?c.bcar_score+"% (99.6% VaR)":"not loaded"}, balance sheet ${c.bs_assessment||"—"}, RBC ${c.rbc_cal_pct!=null?c.rbc_cal_pct+"%":"—"}, rated ${c.fsr||"—"}.`
+});
 function quart(xs,q){xs=xs.filter(v=>v!=null).sort((a,b)=>a-b);if(!xs.length)return null;
   const i=(xs.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return xs[lo]+(xs[hi]-xs[lo])*(i-lo);}
 // 2D "expected tier" zones — the middle-50% box of each tier in BOTH predictors (cuts both ways)
@@ -481,7 +503,35 @@ function renderBlock(key){
   document.getElementById("ncount").textContent="n = "+data.length+" rated carriers · tap a point";
   if(w)showDetail(w);
 }
-function viewBS(){renderBlock("bs");}
+function viewBS(){
+  if(BSMODE==="bcarrbc"){ viewBCARvsRBC(); return; }
+  renderBlock(BSMODE==="bcar"?"bs_bcar":"bs");
+}
+function viewBCARvsRBC(){
+  const data=active().filter(c=>c.rbc_cal_pct!=null && c.bcar_score!=null);
+  const tiers=BS_TIERS.filter(t=>data.some(c=>c.bs_assessment===t));
+  const others=data.filter(c=>!c.is_wellabe);
+  const traces=tiers.map(t=>{const g=others.filter(c=>c.bs_assessment===t);
+    return {x:g.map(c=>c.rbc_cal_pct),y:g.map(c=>c.bcar_score),customdata:g,text:g.map(c=>c.rating_unit_name),
+      type:"scatter",mode:"markers",name:t,marker:{size:11,color:BS_COLOR[t],line:{width:.5,color:"#fff"}},
+      hovertemplate:"%{text}<br>RBC %{x}%, BCAR %{y}%<extra></extra>"};});
+  const w=wellabe(data);
+  if(w)traces.push({x:[w.rbc_cal_pct],y:[w.bcar_score],customdata:[w],text:[w.rating_unit_name],type:"scatter",mode:"markers",
+    marker:{size:20,color:BS_COLOR[w.bs_assessment]||"#C0392B",symbol:"diamond",line:{width:2.5,color:"#0B1C2C"}},
+    hovertemplate:"%{text} (Wellabe)<extra></extra>"});
+  const shapes=[{type:"line",xref:"paper",x0:0,x1:1,yref:"y",y0:25,y1:25,line:{color:"#C0392B",width:1.4,dash:"dash"}}];
+  document.getElementById("chart").style.height="";
+  Plotly.newPlot("chart",traces,Object.assign(LAYOUT({
+    xaxis:{title:"RBC ratio — CAL (%)",type:"log",gridcolor:"#ECE8DD"},
+    yaxis:{title:"BCAR — capital to spare at 99.6% VaR (%)",gridcolor:"#ECE8DD"}
+  }),{shapes}),CFG).then(bindTap);
+  legend(BS_COLOR,BS_TIERS);
+  document.getElementById("finding").innerHTML= data.length<3
+    ? `This view plots Best's capital model (BCAR, vertical) against the regulator's RBC ratio (horizontal), so you can see how the two capital measures relate. Only <b>${data.length}</b> carrier${data.length===1?"":"s"} has BCAR loaded — add peers' 99.6% VaR BCAR to fill it in. The dashed line is the ~25% Strongest bar; Wellabe (◆) sits at ~648% RBC and 67.3% BCAR.`
+    : `Best's capital model (BCAR, vertical) against the regulator's RBC ratio (horizontal, log). The dashed line is the ~25% Strongest bar on BCAR. The two do not move one-for-one: a high RBC ratio does not guarantee a high BCAR, which is exactly why Best uses its own model. Wellabe (◆) sits at ~648% RBC and 67.3% BCAR.`;
+  document.getElementById("ncount").textContent="n = "+data.length+" carriers with both BCAR and RBC · tap a point";
+  if(w)showDetail(w);
+}
 function viewOP(){renderBlock("op");}
 function viewBP(){renderBlock("bp");}
 
@@ -592,7 +642,7 @@ function viewBSFSR(){
 
 /* ============================ export ============================ */
 document.getElementById("exportBtn").onclick=async()=>{
-  const names={bs:"BS-2_rbc_vs_assetrisk",op:"OP-1_roe_by_assessment",bp:"BP-1_assets_vs_hhi",notch:"N-1_predicted_vs_actual",bsfsr:"BS-3_grade_vs_FSR"};
+  const names={bs:"BS_"+BSMODE,op:"OP-1_roe_by_assessment",bp:"BP-1_assets_vs_hhi",notch:"N-1_predicted_vs_actual",bsfsr:"BS-3_grade_vs_FSR"};
   const base=names[VIEW];
   await Plotly.downloadImage("chart",{format:"svg",filename:base,height:720,width:1000});
   // CSV of the active frame for this view
@@ -774,6 +824,10 @@ function viewInput(){
 }
 function initInput(){
   document.getElementById("axisToggle").onclick=()=>{SECOND=!SECOND;render();};
+  document.querySelectorAll(".bsmode").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll(".bsmode").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); BSMODE=b.dataset.bsmode; render();
+  });
   document.getElementById("exportAll").onclick=exportAllCSV;
   document.getElementById("welReset").onclick=()=>{WEL={...WEL_CUR};viewWellabe();};
   const drop=document.getElementById("drop"), fi=document.getElementById("fileInput");
