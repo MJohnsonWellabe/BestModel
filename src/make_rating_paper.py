@@ -475,11 +475,24 @@ def build():
               "below Strongest on the overall balance sheet.")
     body(doc, "The reasons are visible in the same paragraphs, and they are mostly capital that will not stay put. "
               "Reserve National's parent anticipates upstreaming dividends. National Western's balance sheet is "
-              "expected to be affected by planned capital withdrawals tied to its acquisition. GPM uses reinsurance "
-              "to relieve new-business strain. Others carry concentrated reserves or heavy allocations to "
-              "lower-quality bonds. Best also weighs the absolute size of the capital base, liquidity, reserve "
-              "adequacy and financial flexibility. This is the mechanism to keep in mind when we come to our own "
-              "drawdown.")
+              "expected to be affected by planned capital withdrawals tied to its acquisition. Others carry "
+              "concentrated reserves or heavy allocations to lower-quality bonds. Best also weighs the absolute size "
+              "of the capital base, liquidity, reserve adequacy and financial flexibility.")
+    body(doc, "Two of those factors deserve attention because they are the levers we are pulling. On reinsurance, the "
+              "reports do not support the intuition that heavy use costs a carrier the grade. Best describes it in "
+              "neutral or favourable terms across the peer set: appropriate use to relieve new-sales strain at GPM, "
+              "risk lessened through reinsurance at National Western, usage still below the industry average at "
+              "Liberty Bankers. Where it draws a comment, as with American-Amicable's material use relative to peers, "
+              "Best immediately notes the cessions go to high-rated counterparties. Reinsurance is read as risk "
+              "management, and the quality of the counterparty is what it looks at.")
+    body(doc, "Debt is treated differently, and Best is explicit about it. National Guardian Life carries surplus "
+              "notes and Best writes that they slightly decrease the quality of capital overall, while noting the "
+              "group is paying them down. That carrier is graded Very Strong rather than Strongest. The penalty is "
+              "calibrated rather than automatic: Guardian Life holds the Strongest grade with surplus notes "
+              "outstanding, because Best judges its financial leverage favourable and its interest coverage within "
+              "tolerance. Where leverage is heavier and sits alongside other issues, as at ManhattanLife, it "
+              "contributes to a materially lower grade. Section 8 returns to what this means for our own surplus "
+              "note.")
 
     H(doc, "5.  The other three blocks, and which of them can move us")
     body(doc, "The balance sheet sets the starting point. The other three blocks add or remove notches from it:")
@@ -563,8 +576,16 @@ def build():
     body(doc, "A slip in the balance-sheet grade is the more likely of the two, and not because of the RBC trough. "
               "No RBC level sorts the grade. The risk is that a multi-year, deliberate capital drawdown is "
               "recognisably the same category of fact that cost thirteen peers the top tier: capital leaving the "
-              "balance sheet. The surplus note sits in that assessment as well, since it raises both ratios while "
-              "adding lower-quality capital.")
+              "balance sheet.")
+    body(doc, "The surplus note belongs in the same assessment, and the peer evidence tells us how it will be read. "
+              "It raises the RBC ratio and BCAR while adding capital that Best treats as lower quality, the effect "
+              "it described at National Guardian Life as slightly decreasing the quality of capital overall. Our "
+              "current report says the group has no debt and minimal operating leverage, so the note replaces a "
+              "clean statement with a qualified one, in the same window as the drawdown. It should not cost us the "
+              "grade by itself. Guardian Life holds the Strongest assessment with surplus notes outstanding because "
+              "Best judges its interest coverage to be within tolerance and its leverage favourable. That is the "
+              "standard to hold ourselves to: coverage inside Best's tolerances and a visible paydown path, "
+              "presented before Best has to ask.")
 
     H(doc, "9.  The catastrophic outcome")
     body(doc, "The downside case is both blocks moving in the same window. A balance-sheet slip to Very Strong plus "
