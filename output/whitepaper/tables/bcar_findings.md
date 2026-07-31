@@ -15,14 +15,14 @@ The tiers overlap: the weakest *Strongest* carrier scores 8.5% while the best *V
 
 ### Rated at or above *Very Strong* while scoring under the 25% bar (8)
 
-- **CNO — Bankers Life** — BCAR 3.8%, balance sheet Very Strong, rated A. Scale, liquidity and ERM carry the grade.
-- **CNO — Colonial Penn** — BCAR 3.8%, balance sheet Very Strong, rated A. Scale, liquidity and ERM carry the grade.
-- **CNO — Washington National** — BCAR 3.8%, balance sheet Very Strong, rated A. Scale, liquidity and ERM carry the grade.
-- **Forethought (Global Atlantic)** — BCAR 4.9%, balance sheet Very Strong, rated A. Scale, liquidity and ERM carry the grade.
-- **New York Life** — BCAR 8.5%, balance sheet Strongest, rated A++. Scale, liquidity and ERM carry the grade.
-- **Funeral Directors Life** — BCAR 17.0%, balance sheet Very Strong, rated A-. Scale, liquidity and ERM carry the grade.
-- **Atlantic American — Bankers Fidelity** — BCAR 22.6%, balance sheet Very Strong, rated A-. Scale, liquidity and ERM carry the grade.
-- **American National** — BCAR 23.6%, balance sheet Very Strong, rated A. Scale, liquidity and ERM carry the grade.
+- **CNO — Bankers Life** — BCAR 3.8%, balance sheet Very Strong, rated A. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **CNO — Colonial Penn** — BCAR 3.8%, balance sheet Very Strong, rated A. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **CNO — Washington National** — BCAR 3.8%, balance sheet Very Strong, rated A. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **Forethought (Global Atlantic)** — BCAR 4.9%, balance sheet Very Strong, rated A. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **New York Life** — BCAR 8.5%, balance sheet Strongest, rated A++. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **Funeral Directors Life** — BCAR 17.0%, balance sheet Very Strong, rated A-. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **Atlantic American — Bankers Fidelity** — BCAR 22.6%, balance sheet Very Strong, rated A-. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
+- **American National** — BCAR 23.6%, balance sheet Very Strong, rated A. The grade rests on something other than the ratio: group support, scale, or the qualitative balance-sheet factors.
 
 ## BCAR vs the regulatory RBC ratio
 

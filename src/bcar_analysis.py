@@ -98,7 +98,8 @@ def main() -> int:
         for r in sorted(below, key=lambda r: r["bcar_996_f"]):
             lines.append(f"- **{r['seed_name'] or r['rating_unit_name']}** — BCAR "
                          f"{r['bcar_996_f']:.1f}%, balance sheet {r['bs_assessment']}, rated "
-                         f"{r['fsr']}. Scale, liquidity and ERM carry the grade.")
+                         f"{r['fsr']}. The grade rests on something other than the ratio: group "
+                         "support, scale, or the qualitative balance-sheet factors.")
 
     # --- 2. BCAR vs RBC ---------------------------------------------------------------------
     paired = [(r, rbc.get(r["seed_name"])) for r in rows if rbc.get(r["seed_name"]) is not None]
