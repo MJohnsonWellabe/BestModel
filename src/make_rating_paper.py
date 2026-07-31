@@ -614,27 +614,26 @@ def build():
               "produces both moves together.")
     body(doc, "At B++ the damage is concentrated where the rating actually sells. Preneed programs and funeral-home "
               "relationships come under immediate pressure, reinsurance terms tighten, and any capital raise gets "
-              "materially more expensive. Guaranty-backed agent Medicare Supplement is the most insulated. The "
-              "recovery problem is the harder part: carriers that fall below A- rarely climb back without new "
-              "capital, because the distribution loss removes the earnings that would justify an upgrade.")
-    body(doc, "We assess this as a low-probability path. It requires both blocks to fail together rather than "
-              "either one alone, and we would have warning before it arrived.")
-    body(doc, "The more useful point is what happens next, because B++ is a trough rather than a resting place. The "
-              "operating slip that takes us there is a move from Adequate to Marginal, and Marginal means Best has "
-              "stopped believing the losses turn. If profitability arrives shortly after, which is what the plan and "
-              "the current combined-ratio trend both point to, that block returns to Adequate. Adequate is the "
-              "no-change state, so recovering it does not require us to earn a positive notch. It only requires us "
-              "to stop losing one. On a Very Strong balance sheet that puts us back at a- and A-, inside the "
+              "materially more expensive. Guaranty-backed agent Medicare Supplement is the most insulated.")
+    body(doc, "What happens next matters more than the drop itself, because B++ is a trough rather than a resting "
+              "place. The operating slip that takes us there is a move from Adequate to Marginal, and Marginal means "
+              "Best has stopped believing the losses turn. If profitability arrives shortly after, which is what the "
+              "plan and the current combined-ratio trend both point to, that block returns to Adequate. Adequate is "
+              "the no-change state, so recovering it does not require us to earn a positive notch. It only requires "
+              "us to stop losing one. On a Very Strong balance sheet that puts us back at a- and A-, inside the "
               "appetite, and if capital rebuilds past the trough as planned the starting point returns to a and the "
               "letter to A.")
-    body(doc, "So the realistic shape of the downside is a dip to B++ followed by a recovery to A-, not a permanent "
-              "reset. Two things determine whether it plays out that way. The first is time at B++, because Best "
-              "upgrades on demonstrated results rather than forecasts, so the recovery lags the earnings by at least "
-              "a review cycle. The second is what happens to distribution while we sit there. Carriers that fall "
-              "below A- and lose shelf access can find the earnings recovery undercut by the business they lost, "
-              "which is the mechanism that keeps some of them down. Our exposure to that runs through preneed and "
-              "reinsurance rather than through guaranty-backed Medicare Supplement. Holding those relationships "
-              "through the trough is what converts a two-year dip into a full recovery.")
+    body(doc, "The realistic shape of the downside is therefore a dip to B++ followed by a recovery to A-, rather "
+              "than a permanent reset. Two things decide whether it plays out that way. The first is how long we sit "
+              "at B++, because Best upgrades on demonstrated results rather than forecasts, so the recovery lags the "
+              "earnings by at least a review cycle. The second is what happens to distribution while we are there. "
+              "Carriers that fall below A- and lose shelf access can find the earnings recovery undercut by the "
+              "business they lost, and that is the mechanism that keeps some of them down. Our exposure to it runs "
+              "through preneed and reinsurance rather than through guaranty-backed Medicare Supplement, so holding "
+              "those relationships through the trough is what converts a dip into a full recovery.")
+    body(doc, "We assess the two-block scenario as a low-probability path. It requires both blocks to fail together "
+              "rather than either one alone, we would have warning before it arrived, and the recovery route back to "
+              "A- is open provided distribution holds.")
 
     H(doc, "10.  What we monitor, and how we tell the story")
     body(doc, "Four things carry the signal, and we should be deliberate about each.")
@@ -661,10 +660,12 @@ def build():
               "and none of the qualifiers that cost peers the top tier currently applies to us. Our plan draws that "
               "capital down through about 2029.")
     body(doc, "Two blocks can realistically move us. Each on its own costs one letter and lands us at A-, still "
-              "inside the appetite. Both together cost two and take us to B++, outside it. The base case is that we "
-              "hold A, and the first half of 2026 supports it. The exposure is that both live blocks are stressed in "
-              "the same window, so the discipline is to keep the capital path explained in advance and the operating "
-              "evidence arriving on time.")
+              "inside the appetite. Both together cost two and take us to B++, outside it, though that case is a "
+              "trough rather than an end state: returning operating performance to Adequate brings us back to A-, "
+              "and it requires only that we stop losing a notch rather than earn one. The base case is that we hold "
+              "A, and the first half of 2026 supports it. The exposure is that both live blocks are stressed in the "
+              "same window, so the discipline is to keep the capital path explained in advance, the operating "
+              "evidence arriving on time, and the preneed and reinsurance relationships intact through the trough.")
 
     note = doc.add_paragraph(); rn = note.add_run(
         "Sources and method. Wellabe's rating, grades and financials come from the AM Best Credit Report for "
