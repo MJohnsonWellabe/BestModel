@@ -80,9 +80,25 @@ def patch_existing() -> int:
         print("No tool/data.json and no existing tool/public_data.json — run src/build.py first.")
         return 1
     bcar = load_bcar()
+    # Refresh the published AM Best labels from assessments.csv too, so corrections made there
+    # (e.g. from the credit reports) reach the site without a full rebuild of the licensed frame.
+    labels = {}
+    apath = ROOT / "data" / "assessments.csv"
+    if apath.exists():
+        with apath.open(newline="") as f:
+            for row in csv.DictReader(f):
+                labels[(row.get("rating_unit_name") or "").strip()] = row
+    label_fields = ["fsr", "icr", "outlook", "under_review", "bs_assessment", "op_assessment",
+                    "bp_assessment", "erm_assessment", "rating_action_date", "source_url"]
     doc = json.loads(OUT.read_text())
     for c in doc.get("carriers", []):
-        c["bcar_score"] = bcar.get((c.get("rating_unit_name") or "").strip())
+        name = (c.get("rating_unit_name") or "").strip()
+        c["bcar_score"] = bcar.get(name)
+        row = labels.get(name)
+        if row:
+            for k in label_fields:
+                if row.get(k):
+                    c[k] = row[k]
     doc.setdefault("meta", {})["n"] = len(doc.get("carriers", []))
     OUT.write_text(json.dumps(doc, indent=2, default=str))
     have = sum(1 for c in doc.get("carriers", []) if c.get("bcar_score") is not None)
