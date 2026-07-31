@@ -11,6 +11,7 @@ Run: python src/make_rating_paper.py
 """
 from __future__ import annotations
 import json
+import re
 import sys
 from pathlib import Path
 import matplotlib
@@ -30,7 +31,50 @@ import notching  # noqa: E402
 FIG = ROOT / "output" / "whitepaper" / "figures"
 FIG.mkdir(parents=True, exist_ok=True)
 OUT = ROOT / "output" / "whitepaper" / "Wellabe_AMBest_Rating.docx"
-D = json.load(open(ROOT / "tool" / "data.json"))["carriers"]
+# Prefer the full licensed frame when it has been built locally; otherwise use the published
+# public frame, which carries the same public fields plus the BCAR scores from the Best reports.
+_FRAME = ROOT / "tool" / "data.json"
+if not _FRAME.exists():
+    _FRAME = ROOT / "tool" / "public_data.json"
+D = json.load(open(_FRAME))["carriers"]
+
+
+def _bcar(c):
+    return c.get("bcar_score")
+
+
+def bcar_peers():
+    """Carriers with a BCAR score, from their Best's Credit Reports."""
+    return [c for c in D if _bcar(c) is not None]
+
+
+def _corr(xs, ys):
+    n = len(xs)
+    if n < 3:
+        return float("nan")
+    mx, my = sum(xs) / n, sum(ys) / n
+    num = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    dx = (sum((x - mx) ** 2 for x in xs)) ** 0.5
+    dy = (sum((y - my) ** 2 for y in ys)) ** 0.5
+    return num / (dx * dy) if dx and dy else float("nan")
+
+
+def _median(xs):
+    xs = sorted(x for x in xs if x is not None)
+    if not xs:
+        return None
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+# Facts computed from the reports so the prose cannot drift from the data.
+_BOTH = [c for c in bcar_peers() if c.get("rbc_cal_pct") is not None]
+_N_BOTH = len(_BOTH)
+_R_BCAR_RBC = _corr([c["rbc_cal_pct"] for c in _BOTH], [_bcar(c) for c in _BOTH])
+_TIER_MED = {t: _median([_bcar(c) for c in bcar_peers() if c.get("bs_assessment") == t])
+             for t in ("Strongest", "Very Strong", "Strong", "Adequate")}
+_RANKED = sorted(bcar_peers(), key=lambda c: -_bcar(c))
+_W_RANK = next((i + 1 for i, c in enumerate(_RANKED) if c.get("is_wellabe")), None)
 
 ACCENT = "#2E5A88"; INK = "#0B1C2C"; WELL = "#C0392B"; MUTE = "#5C6B78"
 TIERCOL = {"Strongest": "#0F5C8C", "Very Strong": "#27A35A", "Strong": "#9AA0A6", "Adequate": "#C97B2B"}
@@ -117,6 +161,65 @@ def fig_cap_tiers():
     ax.set_title("Capital by balance-sheet tier across peers")
     ax.invert_yaxis(); ax.spines[["top", "right"]].set_visible(False)
     fig.savefig(FIG / "rp_captiers.png"); plt.close(fig)
+
+
+def fig_bcar_tiers():
+    """BCAR by balance-sheet tier: the measure Best actually grades on, across the peer set."""
+    order = ["Strongest", "Very Strong", "Strong", "Adequate"]
+    peers = bcar_peers()
+    fig, ax = plt.subplots(figsize=(7.0, 3.6), constrained_layout=True)
+    data = [[_bcar(c) for c in peers if c.get("bs_assessment") == g] for g in order]
+    pos = list(range(len(order)))
+    bp = ax.boxplot(data, positions=pos, orientation="horizontal", widths=0.55, patch_artist=True,
+                    showfliers=False, medianprops=dict(color=INK, lw=1.6),
+                    whiskerprops=dict(color="#8A8A8A"), capprops=dict(color="#8A8A8A"))
+    for patch, g in zip(bp["boxes"], order):
+        patch.set_facecolor(TIERCOL.get(g, "#9AA0A6")); patch.set_alpha(0.35); patch.set_edgecolor("#8A8A8A")
+    for i, ys in enumerate(data):
+        ax.scatter(ys, [i] * len(ys), color=TIERCOL.get(order[i], "#9AA0A6"), s=18, alpha=0.55,
+                   zorder=3, edgecolor="white", lw=.4)
+    ax.set_yticks(pos); ax.set_yticklabels(order)
+    w = Wc()
+    if _bcar(w) is not None:
+        ax.scatter([_bcar(w)], [0], marker="D", s=160, color=WELL, edgecolor=INK, lw=1.4, zorder=6)
+        ax.annotate(f"Wellabe, {_bcar(w):.1f}%", (_bcar(w), 0), xytext=(6, 15), textcoords="offset points",
+                    color=WELL, fontweight="bold", fontsize=9.5)
+    ax.axvline(25, color=WELL, lw=1.4, ls="--", zorder=2)
+    ax.text(25, 3.55, " 25% top-tier line", color=WELL, fontsize=9, va="top")
+    ax.set_xlabel("BCAR cushion at the 1-in-250 stress (%)")
+    ax.set_title("BCAR by balance-sheet tier: stronger tiers sit higher, but they overlap")
+    ax.invert_yaxis(); ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(FIG / "rp_bcartiers.png"); plt.close(fig)
+
+
+def fig_bcar_vs_rbc():
+    """The two capital yardsticks against each other: they do not move together."""
+    peers = [c for c in bcar_peers() if c.get("rbc_cal_pct") is not None]
+    fig, ax = plt.subplots(figsize=(7.0, 4.0), constrained_layout=True)
+    for c in peers:
+        grp = (c.get("rating_basis") == "group-member")
+        ax.scatter([c["rbc_cal_pct"]], [_bcar(c)], s=42, alpha=.75, zorder=3,
+                   color="#C97B2B" if grp else ACCENT, edgecolor="white", lw=.5)
+    w = Wc()
+    ax.scatter([w["rbc_cal_pct"]], [_bcar(w)], marker="D", s=170, color=WELL, edgecolor=INK, lw=1.4, zorder=6)
+    ax.annotate(f"Wellabe\n{w['rbc_cal_pct']:.0f}% RBC, {_bcar(w):.1f}% BCAR", (w["rbc_cal_pct"], _bcar(w)),
+                xytext=(-10, -42), textcoords="offset points", color=WELL, fontweight="bold",
+                fontsize=9, ha="center")
+    from matplotlib.lines import Line2D
+    ax.legend(handles=[Line2D([], [], marker="o", ls="", color=ACCENT, label="rated on its own"),
+                       Line2D([], [], marker="o", ls="", color="#C97B2B", label="rated with group support")],
+              frameon=False, fontsize=9, loc="upper left")
+    ax.set_xscale("log")
+    ax.set_xlim(120, 2600); ax.set_ylim(-70, 92)
+    ax.axhspan(-70, 25, color=WELL, alpha=0.06, zorder=0)
+    ax.axhline(25, color=WELL, lw=1.3, ls="--", zorder=2)
+    ax.text(2500, 27, "25% top-tier line on BCAR ", color=WELL, fontsize=9, ha="right")
+    ax.set_xticks([200, 300, 500, 1000, 2000]); ax.set_xticklabels(["200", "300", "500", "1,000", "2,000"])
+    ax.set_xlabel("NAIC RBC ratio, CAL basis (%), log scale")
+    ax.set_ylabel("BCAR cushion at the 1-in-250 stress (%)")
+    ax.set_title("The two capital measures do not move together")
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(FIG / "rp_bcarrbc.png"); plt.close(fig)
 
 
 def fig_earn_tiers():
@@ -214,7 +317,15 @@ def bullet(doc, text):
     p = doc.add_paragraph(style="List Bullet"); r = p.add_run(text); r.font.size = Pt(10.5); return p
 
 
+_FIGN = [0]
+
+
 def img(doc, name, caption):
+    """Insert a figure. Any leading "Figure N." in the caption is replaced with the running
+    number so captions stay in order when figures are added or moved."""
+    _FIGN[0] += 1
+    caption = re.sub(r"^\s*Figure\s+\d+\.\s*", "", caption)
+    caption = f"Figure {_FIGN[0]}. {caption}"
     doc.add_picture(str(FIG / name), width=Inches(6.1))
     doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
     c = doc.add_paragraph(); r = c.add_run(caption); r.italic = True; r.font.size = Pt(9)
@@ -266,13 +377,15 @@ def peer_rows():
         if not c:
             continue
         rbc = c.get("rbc_cal_pct")
+        bc = _bcar(c)
         out.append([nm.replace("Wellabe Group", "Wellabe").replace(" — ", ", "),
                     c.get("fsr") or "n/a", c.get("bs_assessment") or "n/a",
                     c.get("op_assessment") or "n/a", c.get("bp_assessment") or "n/a",
                     c.get("erm_assessment") or "n/a",
+                    f"{bc:.1f}%" if bc is not None else "n/a",
                     f"{round(rbc):,}%" if rbc else "n/a"])
     out.sort(key=lambda r: (FSR_ORDER.index(r[1]) if r[1] in FSR_ORDER else 99,
-                            -float(r[6].replace(",", "").rstrip("%")) if r[6] != "n/a" else 0))
+                            -float(r[7].replace(",", "").rstrip("%")) if r[7] != "n/a" else 0))
     return out
 
 
@@ -363,6 +476,17 @@ def build():
     body(doc, "So we hold two capital numbers in mind. The RBC ratio is the regulator's floor and the number our plan "
               "moves the most. BCAR is Best's stress test and the number that sets our grade. They can move together "
               "or apart, and the gap between them is the heart of the capital question for us.")
+    body(doc, "We can now show how far apart they run, because we have pulled the BCAR score out of the Best credit "
+              f"report for {len(bcar_peers())} carriers in our competitive set. Across the {_N_BOTH} of them that have "
+              f"both measures, the correlation between BCAR and the RBC ratio is only {_R_BCAR_RBC:+.2f}. The two "
+              "numbers are close to unrelated once a carrier is comfortably above the regulatory floor. The scatter "
+              "below makes the point in a way the definitions cannot: carriers with nearly identical RBC ratios sit "
+              "anywhere from the top to the bottom of the BCAR range. Aetna's American Continental runs an RBC ratio "
+              "above 2,000% on a BCAR of 29%. ManhattanLife Assurance runs 859% RBC on a BCAR of 17.7%. A high RBC "
+              "ratio does not buy a strong balance-sheet grade, which is exactly why Best built its own model.")
+    img(doc, "rp_bcarrbc.png", "Figure 2. Best's capital model against the regulator's ratio for "
+        f"{_N_BOTH} carriers. The two do not move together. Carriers shaded orange are rated with group "
+        "support, and they cluster low on BCAR: their parent, not their own capital, is carrying the rating.")
 
     # ---------- PART II
     part(doc, "Part II.  Where Wellabe stands")
@@ -399,16 +523,27 @@ def build():
               "pace once the surplus note adds lower-quality capital and losses continue.")
     img(doc, "rp_bcar.png", "Figure 1. BCAR over the four annual reviews we have. It sits well above the 25% bar but has trended down each year, and the plan takes it lower.")
     body(doc, "The RBC ratio moves more. It runs about 648% today and the plan carries it toward a trough near 400% "
-              "around 2029 before it rebuilds. That matters because of where 400% sits. In our peer data, carriers "
-              "graded Strongest tend to sit above roughly 530% on this basis, with the Very Strong band running from "
-              "about 375% to 530%. A 400% ratio sits inside the Very Strong band, not the Strongest one.")
-    img(doc, "rp_rbcpath.png", "Figure 2. An illustrative path for our RBC ratio to the planned trough. At ~400% it sits in the Very Strong band on the peer-floor read, below the Strongest floor. The exact path will depend on results and capital actions.")
+              "around 2029 before it rebuilds. It is tempting to read that against peer RBC ratios and conclude the "
+              "grade must fall, and an earlier draft of this paper did exactly that. The report data does not support "
+              "it. Aetna's American Continental carries an RBC ratio above 2,000% and is graded Very Strong, not "
+              "Strongest, while New York Life is graded Strongest with a BCAR of 8.5%. There is no RBC threshold that "
+              "sorts the balance-sheet grade, so a 400% RBC ratio does not by itself cost us the Strongest "
+              "assessment. What we should watch instead is BCAR.")
+    body(doc, "On BCAR the peer picture is much better behaved. The median score falls cleanly with each step down in "
+              f"the balance-sheet grade: about {_TIER_MED['Strongest']:.0f}% for Strongest, "
+              f"{_TIER_MED['Very Strong']:.0f}% for Very Strong, {_TIER_MED['Strong']:.0f}% for Strong and "
+              f"{_TIER_MED['Adequate']:.0f}% for Adequate. The tiers still overlap, so BCAR is not a formula that "
+              "returns the grade, but it is the measure that tracks it. We sit at 67.3%, which is near the top of the "
+              "Strongest group and well clear of the tier below.")
+    img(doc, "rp_bcartiers.png", "Figure 3. BCAR by balance-sheet tier across the carriers we hold reports for. "
+        "The tiers step down in the expected order and overlap at the edges. We sit high in the Strongest band.")
+    img(doc, "rp_rbcpath.png", "An illustrative path for our RBC ratio to the planned trough. The exact path will depend on results and capital actions. As the peer data shows, the RBC level alone does not set the balance-sheet grade.")
     body(doc, "So the real question is straightforward. Does our balance-sheet grade stay Strongest through the "
-              "trough, or does it slip to Very Strong. The evidence cuts both ways, and we should hold both halves. "
-              "On one side, the RBC ratio at the trough lands in Very Strong territory on the peer read, which argues "
-              "for a lower grade. On the other side, Best itself has said, in its outlook, that it expects us to "
-              "maintain the Strongest assessment, and BCAR, the measure that drives the grade, has much more room "
-              "than the RBC ratio suggests, so it may still compute Strongest at a 400% RBC level. It is also worth "
+              "trough, or does it slip to Very Strong. The evidence now leans more favourably than the earlier draft "
+              "suggested, though it does not settle the question. Best itself has said, in its outlook, that it "
+              "expects us to maintain the Strongest assessment, and BCAR, the measure that drives the grade, has "
+              "much more room than the RBC ratio suggests. A six-point decline every three years, the recent pace, "
+              "would still leave us above the 25% line well past 2029. It is also worth "
               "remembering that BCAR alone does not set the balance-sheet grade. Best weighs asset quality, reserve "
               "adequacy, financial flexibility, and the holding-company structure alongside it, so the grade is a "
               "broader judgement than any single capital number. We will not know where it lands until Best re-runs "
@@ -421,20 +556,35 @@ def build():
     H(doc, "6.  How we compare to peers")
     body(doc, "Reading the same four grades across the competitive set shows where the letters really come from. The "
               "table is sorted by rating, then by capital. The capital column and the rating do not move together.")
-    table(doc, ["Carrier", "Rating", "Balance sheet", "Operating", "Business profile", "ERM", "RBC (CAL)"],
+    table(doc, ["Carrier", "Rating", "Balance sheet", "Operating", "Business profile", "ERM", "BCAR", "RBC (CAL)"],
           peer_rows(), highlight="Wellabe")
     body(doc, "Two patterns stand out. First, capital does not sort the ratings. Globe Life holds our same A on a "
-              "Strong balance sheet and a 316% RBC ratio, carried by its size and business profile. Guarantee Trust "
-              "Life holds an A above 800% RBC. ManhattanLife sits at B++ with more reported capital than several A- "
-              "carriers. What sorts the ratings is operating performance and business profile. Second, we stand out "
+              "Strong balance sheet, a 316% RBC ratio and a BCAR of 6.6%, carried by its size and business profile. "
+              "Guarantee Trust Life holds an A above 800% RBC. ManhattanLife sits at B++ with more reported capital "
+              "than several A- carriers. What sorts the ratings is operating performance and business profile. "
+              "Second, we stand out "
               "in two directions. We do very well on capital, holding one of only a handful of Strongest grades in "
-              "the sample and an RBC ratio in the top quartile of the group. And we do poorly on return, with a "
+              f"the sample and, on BCAR, the measure that actually sets the grade, ranking {_W_RANK} of "
+              f"{len(bcar_peers())} carriers we have reports for. And we do poorly on return, with a "
               "five-year return on equity (net income across the whole business measured against surplus, not an "
               "investment return) near the bottom of the whole group, held at Adequate where most A-rated "
               "peers are graded Strong. The typical A-rated carrier is the reverse of us, a Very Strong balance sheet "
               "paired with Strong operating performance. We have held our A with capital and a plan Best believes "
               "where others hold it with profits.")
-    img(doc, "rp_captiers.png", "Figure 3. Capital by balance-sheet tier across peers. We sit high today, which is the cushion the plan now spends down.")
+    img(doc, "rp_captiers.png", "Figure 4. Capital by balance-sheet tier across peers. We sit high today, which is the cushion the plan now spends down.")
+    body(doc, "There is one more pattern in the report data, and it changes how the low-capital examples above should "
+              "be read. Look at the carriers holding a strong rating on a thin BCAR. Combined Insurance is rated A+ "
+              "on a BCAR of 2.7%. The three CNO companies are rated A on 3.8%. Global Atlantic's Forethought is rated "
+              "A on 4.9%. Humana is rated A on a BCAR below zero. Every one of those is rated with group support: the "
+              "parent's capital, not the operating company's, is holding the letter up. The handful of exceptions are "
+              "standalone carriers of a size we will never be, New York Life at roughly 259 billion dollars in assets "
+              "and Lincoln at 320 billion, where scale and diversification do the same job. Across the reports we "
+              "hold, group-rated carriers run a median BCAR of about 23% against 29% for carriers rated on their own.")
+    body(doc, "The lesson is not that capital does not matter. It is that a thin balance sheet can be carried by "
+              "someone else's, and we do not have anyone else's. We are rated standalone, at a scale far below the "
+              "carriers that get away with it. So the peer examples of strong ratings on weak capital are not a "
+              "template for us. Our own capital has to do the work, which is precisely why the BCAR trajectory is the "
+              "number to watch through the trough.")
     body(doc, "That comparison is also the warning. The block we are about to draw down, capital, is the one we lean "
               "on hardest, and the operating-performance block we would fall back on is our weakest. We do not have a "
               "clean twin in the peer set. The carriers that share our soft-block grades and cluster at A- and B++ "
@@ -575,5 +725,6 @@ def build():
 
 if __name__ == "__main__":
     fig_bcar_history(); fig_rbc_path(); fig_cap_tiers(); fig_earn_tiers(); fig_ladder(); fig_msstress()
+    fig_bcar_tiers(); fig_bcar_vs_rbc()
     build()
     print("wrote " + str(OUT.relative_to(ROOT)))
