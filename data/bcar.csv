@@ -1,0 +1,45 @@
+seed_name,rating_unit_name,amb_number,effective_date,fsr,icr,outlook,action,bs_assessment,op_assessment,bp_assessment,erm_assessment,bcar_model,bcar_95,bcar_99,bcar_995,bcar_996,source_file
+Heartland National,,,"August 06, 2025",B++,bbb,Negative,Affirmed,Strong,Adequate,Limited,Marginal,"L/H, US",35.9,12.0,0.6,-3.1,24 - Heartland National.pdf
+Homesteaders Life,,,"May 29, 2026",A-,a-,Stable,Affirmed,Strong,Adequate,Neutral,Appropriate,"L/H, US",21.6,13.7,10.5,9.7,25 - Homesteaders LIfe.pdf
+Investors Heritage,,,"July 10, 2025",B++,bbb+,Stable,Affirmed,Adequate,Adequate,Neutral,Appropriate,"L/H, US",38.8,17.8,9.5,8.0,27 - Investors Heritage.pdf
+National Western Life,,,"November 05, 2025",A-,a-,Stable,Affirmed,Very Strong,Adequate,Neutral,Appropriate,"L/H, US",53.5,45.2,41.2,40.1,35 - Naitonal Western LIfe.pdf
+Pekin Life,,,"October 24, 2025",A-,a-,Stable,Affirmed,Very Strong,Marginal,Neutral,Appropriate,"L/H, US",60.2,45.1,39.0,36.9,38 - Pekin LIfe.pdf
+Kemper — Reserve National,,,"July 10, 2025",A-,a-,Stable,Affirmed,Very Strong,Adequate,Limited,Appropriate,"L/H, US",75.4,63.4,58.0,56.5,41 - Kemper Reserve National.pdf
+American National — Standard Life & Accident,,,"October 09, 2025",A-,a-,Stable,Affirmed,Very Strong,Adequate,Limited,Appropriate,"L/H, US",76.9,66.4,62.4,61.0,44 - American National Standard Life and Accident.pdf
+Sentinel Security Life,A-CAP Group,070522,"January 23, 2026",B,bb+,Negative,Downgraded Under Review,Adequate,Adequate,Limited,Marginal,"L/H, US",-22.7,-46.1,-55.6,-58.0,43 - Sentinel Security Life.pdf
+Aetna/CVS — Continental Life,Aetna Health & Life Group,069015,"June 05, 2026",A,a,Stable,Affirmed,Very Strong,Strong,Favorable,Appropriate,"Combined Life & Health, US",56.2,38.2,31.3,29.0,"15 -  Aetna, Cvs -  Continental LIfe.pdf"
+Aetna/CVS — American Continental,Aetna Health & Life Group,069015,"June 05, 2026",A,a,Stable,Affirmed,Very Strong,Strong,Favorable,Appropriate,"Combined Life & Health, US",56.2,38.2,31.3,29.0,"3 - Aetna, Cvs - American Continental.pdf"
+Aflac,Aflac Incorporated,058003,"September 05, 2025",A+,aa,Stable,Affirmed,Strongest,Strong,Favorable,Very Strong,Global,85.0,78.0,76.0,75.0,1- Aflac.pdf
+American National,American National Group,070166,"November 21, 2025",A,a,Stable,Affirmed,Very Strong,Adequate,Favorable,Appropriate,"L/H, US",50.1,32.4,25.3,23.6,4 - American National.pdf
+Americo,Americo Financial Life Group,069530,"January 16, 2026",A,a,Stable,Affirmed,Strongest,Adequate,Neutral,Appropriate,"L/H, US",63.4,50.7,46.0,45.0,8 - Americo.pdf
+Assurity Life,Assurity Life Insurance Group,070511,"November 06, 2025",A-,a-,Stable,Affirmed,Strongest,Adequate,Limited,Appropriate,"L/H, US",77.6,69.7,66.5,65.7,9 - Assurity.pdf
+Atlantic American — Bankers Fidelity,Bankers Fidelity Life Ins Grp,070475,"June 17, 2026",A-,a-,Negative,Under Review,Very Strong,Adequate,Neutral,Appropriate,"L/H, US",49.5,31.6,24.8,22.6,10 - Atlantic American Bankers Fidelity.pdf
+CNO — Bankers Life,CNO Financial Group,069803,"April 08, 2026",A,a,Stable,Affirmed,Very Strong,Strong,Neutral,Appropriate,"L/H, US",38.5,15.3,5.6,3.8,11 - CNO Bankers Life.pdf
+CNO — Colonial Penn,CNO Financial Group,069803,"April 08, 2026",A,a,Stable,Affirmed,Very Strong,Strong,Neutral,Appropriate,"L/H, US",38.5,15.3,5.6,3.8,12 - CNO Colonial Penn.pdf
+CNO — Washington National,CNO Financial Group,069803,"April 08, 2026",A,a,Stable,Affirmed,Very Strong,Strong,Neutral,Appropriate,"L/H, US",38.5,15.3,5.6,3.8,47 - CNO Washington National.pdf
+Combined Insurance (Chubb),Combined A&H Group,070178,"January 16, 2026",A+,aa-,Stable,Affirmed,Strong,Strong,Neutral,Appropriate,"L/H, US",38.8,15.4,6.0,2.7,13 - Combined Insurance  (Chubb).pdf
+Continental General,Continental General Ins Co,007360,"December 18, 2025",B+,bbb-,Stable,Affirmed,Strong,Adequate,Very Limited,Appropriate,"L/H, US",45.6,29.1,22.4,20.6,14 - Continental General.pdf
+Funeral Directors Life,Funeral Directors Group,070016,"October 29, 2025",A-,a-,Stable,Affirmed,Very Strong,Adequate,Neutral,Appropriate,"L/H, US",42.6,24.8,18.3,17.0,18 - FDLIC.pdf
+Government Personnel Mutual,GPM Life Group,070452,"April 22, 2026",B++,bbb+,Stable,Affirmed,Very Strong,Marginal,Neutral,Appropriate,"L/H, US",68.5,55.5,50.4,49.2,19 - GPM.pdf
+Forethought (Global Atlantic),Global Atlantic Group,069786,"October 23, 2025",A,a+,Stable,Affirmed,Very Strong,Adequate,Favorable,Appropriate,"L/H, US",33.6,16.1,7.9,4.9,17 - Forethought -  Global Atlantic.pdf
+Globe Life,Globe Life Group,070443,"November 12, 2025",A,a+,Stable,Affirmed,Strong,Very Strong,Favorable,Appropriate,"L/H, US",33.8,15.2,8.4,6.6,21 - globe life.pdf
+Guarantee Trust Life,Guarantee Trust Life Ins Co,006503,"November 12, 2025",A,a,Stable,Affirmed,Strongest,Strong,Limited,Appropriate,"L/H, US",76.5,67.5,63.8,62.7,20 - GTL.pdf
+Guardian Life,Guardian Life Group,069685,"September 12, 2025",A++,aa+,Stable,Affirmed,Strongest,Strong,Favorable,Very Strong,"L/H, US",59.4,47.3,42.7,41.2,22 - Guardian LIfe.pdf
+Cigna — National Health,HCSC Medicare & Supp Group,070641,"January 15, 2026",A,a,Stable,Affirmed,Very Strong,Marginal,Neutral,Appropriate,"Combined Life & Health, US",62.9,46.6,40.3,38.1,23 - Cigna National Health.pdf
+Cigna — Loyal American,HCSC Medicare & Supp Group,070641,"January 15, 2026",A,a,Stable,Affirmed,Very Strong,Marginal,Neutral,Appropriate,"Combined Life & Health, US",62.9,46.6,40.3,38.1,30 - Cigna Loyal American.pdf
+Cigna — American Retirement Life,HCSC Medicare & Supp Group,070641,"January 15, 2026",A,a,Stable,Affirmed,Very Strong,Marginal,Neutral,Appropriate,"Combined Life & Health, US",62.9,46.6,40.3,38.1,6 - Cigna American Retirement Life.pdf
+Humana,Humana Health Group,070832,"December 16, 2025",A,a,Stable,Affirmed,Adequate,Strong,Favorable,Appropriate,"Combined Life & Health, US",24.4,-4.6,-15.8,-19.7,26 - HUmana.pdf
+American-Amicable / Trinity,IA American Life Group,070453,"September 18, 2025",A,a,Stable,Affirmed,Very Strong,Marginal,Neutral,Appropriate,"L/H, US",70.0,59.2,54.8,53.7,"2 - American Amicable, Trinity.pdf"
+Liberty Bankers,Liberty Bankers Ins Group,070410,"July 29, 2025",A-,a-,Stable,Affirmed,Very Strong,Adequate,Neutral,Appropriate,"L/H, US",51.4,36.2,30.0,28.5,28 - Liberty Bankers.pdf
+Lincoln Financial,Lincoln Financial Ins Grp,069556,"March 13, 2026",A,a+,Stable,Affirmed,Strong,Strong,Favorable,Appropriate,"L/H, US",43.5,23.5,13.6,10.6,29 - Lincoln Financial.pdf
+ManhattanLife — Assurance,Manhattan Insurance Group,070357,"December 03, 2025",B++,bbb,Stable,Affirmed,Adequate,Adequate,Neutral,Appropriate,"L/H, US",47.6,29.6,20.8,17.7,32 - Manhattan LIfe Group.pdf
+ManhattanLife — Western United,Manhattan Insurance Group,070357,"December 03, 2025",B++,bbb,Stable,Affirmed,Adequate,Adequate,Neutral,Appropriate,"L/H, US",47.6,29.6,20.8,17.7,48 - Manhattan Western United.pdf
+Mutual of Omaha,Mutual of Omaha Group,070203,"April 02, 2026",A+,aa-,Stable,Affirmed,Very Strong,Strong,Favorable,Appropriate,"L/H, US",51.8,36.8,30.9,29.1,33 - Mutual of Omaha.pdf
+National Guardian Life,NGL Insurance Group,070358,"July 18, 2025",A,a,Stable,Affirmed,Very Strong,Adequate,Neutral,Appropriate,"Combined Life & Health, US",60.3,47.3,42.1,40.7,34 - NGL.pdf
+New Era Life,New Era Group,070009,"June 06, 2025",A-,a-,Stable,Affirmed,Strong,Adequate,Neutral,Appropriate,"L/H, US",47.8,34.3,28.9,27.5,36 - New Era Life.pdf
+Philadelphia American,New Era Group,070009,"June 06, 2025",A-,a-,Stable,Affirmed,Strong,Adequate,Neutral,Appropriate,"L/H, US",47.8,34.3,28.9,27.5,39 - Philadelphia American.pdf
+New York Life,New York Life Group,069714,"July 02, 2025",A++,aaa,Stable,Affirmed,Strongest,Very Strong,Very Favorable,Very Strong,"L/H, US",35.9,17.5,10.3,8.5,37 - New York Life.pdf
+Physicians Mutual,Physicians Mutual Group,069724,"November 13, 2025",A+,aa-,Stable,Upgraded,Strongest,Strong,Neutral,Appropriate,"Combined Life & Health, US",86.4,81.6,79.7,79.1,40 - Physicians Mutual.pdf
+USAA Life,USAA Life Group,070364,"June 25, 2026",A++,aaa,Stable,Affirmed,Very Strong,Strong,Favorable,Appropriate,"L/H, US",60.7,42.8,35.2,33.0,45 - USAA Life.pdf
+UnitedHealthcare,UnitedHealthcare Companies,069183,"August 28, 2025",A,a+,Stable,Downgraded,Strong,Strong,Very Favorable,Appropriate,"Combined Life & Health, US",47.7,25.3,16.6,13.7,46 - UHC.pdf
+Wellabe Group,Wellabe Group,070369,"May 08, 2026",A,a,Stable,Affirmed,Strongest,Adequate,Neutral,Appropriate,"L/H, US",78.3,71.2,68.2,67.3,5 - wellabe.pdf

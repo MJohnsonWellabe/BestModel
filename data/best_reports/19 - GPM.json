@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "GPM Life Group",
+  "amb_number": "070452",
+  "effective_date": "April 22, 2026",
+  "fsr": "B++",
+  "icr": "bbb+",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Marginal",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "68.5",
+  "bcar_99": "55.5",
+  "bcar_995": "50.4",
+  "bcar_996": "49.2",
+  "source_file": "19 - GPM.pdf"
+}

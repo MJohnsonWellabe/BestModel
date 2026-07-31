@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "NGL Insurance Group",
+  "amb_number": "070358",
+  "effective_date": "July 18, 2025",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "Combined Life & Health, US",
+  "bcar_95": "60.3",
+  "bcar_99": "47.3",
+  "bcar_995": "42.1",
+  "bcar_996": "40.7",
+  "source_file": "34 - NGL.pdf"
+}

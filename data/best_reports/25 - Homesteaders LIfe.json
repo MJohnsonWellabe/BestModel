@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "",
+  "amb_number": "",
+  "effective_date": "May 29, 2026",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "21.6",
+  "bcar_99": "13.7",
+  "bcar_995": "10.5",
+  "bcar_996": "9.7",
+  "source_file": "25 - Homesteaders LIfe.pdf"
+}

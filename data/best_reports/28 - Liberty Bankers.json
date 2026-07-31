@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Liberty Bankers Ins Group",
+  "amb_number": "070410",
+  "effective_date": "July 29, 2025",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "51.4",
+  "bcar_99": "36.2",
+  "bcar_995": "30.0",
+  "bcar_996": "28.5",
+  "source_file": "28 - Liberty Bankers.pdf"
+}

@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Global Atlantic Group",
+  "amb_number": "069786",
+  "effective_date": "October 23, 2025",
+  "fsr": "A",
+  "icr": "a+",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "33.6",
+  "bcar_99": "16.1",
+  "bcar_995": "7.9",
+  "bcar_996": "4.9",
+  "source_file": "17 - Forethought -  Global Atlantic.pdf"
+}

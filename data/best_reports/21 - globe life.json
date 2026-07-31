@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Globe Life Group",
+  "amb_number": "070443",
+  "effective_date": "November 12, 2025",
+  "fsr": "A",
+  "icr": "a+",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strong",
+  "op_assessment": "Very Strong",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "33.8",
+  "bcar_99": "15.2",
+  "bcar_995": "8.4",
+  "bcar_996": "6.6",
+  "source_file": "21 - globe life.pdf"
+}

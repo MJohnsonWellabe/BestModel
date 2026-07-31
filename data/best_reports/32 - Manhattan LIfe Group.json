@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Manhattan Insurance Group",
+  "amb_number": "070357",
+  "effective_date": "December 03, 2025",
+  "fsr": "B++",
+  "icr": "bbb",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Adequate",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "47.6",
+  "bcar_99": "29.6",
+  "bcar_995": "20.8",
+  "bcar_996": "17.7",
+  "source_file": "32 - Manhattan LIfe Group.pdf"
+}

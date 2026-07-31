@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Aflac Incorporated",
+  "amb_number": "058003",
+  "effective_date": "September 05, 2025",
+  "fsr": "A+",
+  "icr": "aa",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Strong",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Very Strong",
+  "bcar_model": "Global",
+  "bcar_95": "85.0",
+  "bcar_99": "78.0",
+  "bcar_995": "76.0",
+  "bcar_996": "75.0",
+  "source_file": "1- Aflac.pdf"
+}

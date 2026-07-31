@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "A-CAP Group",
+  "amb_number": "070522",
+  "effective_date": "January 23, 2026",
+  "fsr": "B",
+  "icr": "bb+",
+  "outlook": "Negative",
+  "action": "Downgraded Under Review",
+  "bs_assessment": "Adequate",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Marginal",
+  "bcar_model": "L/H, US",
+  "bcar_95": "-22.7",
+  "bcar_99": "-46.1",
+  "bcar_995": "-55.6",
+  "bcar_996": "-58.0",
+  "source_file": "43 - Sentinel Security Life.pdf"
+}

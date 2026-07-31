@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Guarantee Trust Life Ins Co",
+  "amb_number": "006503",
+  "effective_date": "November 12, 2025",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Strong",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "76.5",
+  "bcar_99": "67.5",
+  "bcar_995": "63.8",
+  "bcar_996": "62.7",
+  "source_file": "20 - GTL.pdf"
+}

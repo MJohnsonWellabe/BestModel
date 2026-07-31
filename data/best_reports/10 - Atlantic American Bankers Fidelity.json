@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Bankers Fidelity Life Ins Grp",
+  "amb_number": "070475",
+  "effective_date": "June 17, 2026",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Negative",
+  "action": "Under Review",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "49.5",
+  "bcar_99": "31.6",
+  "bcar_995": "24.8",
+  "bcar_996": "22.6",
+  "source_file": "10 - Atlantic American Bankers Fidelity.pdf"
+}

@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Assurity Life Insurance Group",
+  "amb_number": "070511",
+  "effective_date": "November 06, 2025",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "77.6",
+  "bcar_99": "69.7",
+  "bcar_995": "66.5",
+  "bcar_996": "65.7",
+  "source_file": "9 - Assurity.pdf"
+}

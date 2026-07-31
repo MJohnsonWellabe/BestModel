@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Physicians Mutual Group",
+  "amb_number": "069724",
+  "effective_date": "November 13, 2025",
+  "fsr": "A+",
+  "icr": "aa-",
+  "outlook": "Stable",
+  "action": "Upgraded",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Strong",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "Combined Life & Health, US",
+  "bcar_95": "86.4",
+  "bcar_99": "81.6",
+  "bcar_995": "79.7",
+  "bcar_996": "79.1",
+  "source_file": "40 - Physicians Mutual.pdf"
+}

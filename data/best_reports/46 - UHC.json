@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "UnitedHealthcare Companies",
+  "amb_number": "069183",
+  "effective_date": "August 28, 2025",
+  "fsr": "A",
+  "icr": "a+",
+  "outlook": "Stable",
+  "action": "Downgraded",
+  "bs_assessment": "Strong",
+  "op_assessment": "Strong",
+  "bp_assessment": "Very Favorable",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "Combined Life & Health, US",
+  "bcar_95": "47.7",
+  "bcar_99": "25.3",
+  "bcar_995": "16.6",
+  "bcar_996": "13.7",
+  "source_file": "46 - UHC.pdf"
+}

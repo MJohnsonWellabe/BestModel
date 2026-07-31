@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "",
+  "amb_number": "",
+  "effective_date": "July 10, 2025",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "75.4",
+  "bcar_99": "63.4",
+  "bcar_995": "58.0",
+  "bcar_996": "56.5",
+  "source_file": "41 - Kemper Reserve National.pdf"
+}

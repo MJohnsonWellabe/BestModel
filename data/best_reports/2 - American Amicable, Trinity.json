@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "IA American Life Group",
+  "amb_number": "070453",
+  "effective_date": "September 18, 2025",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Marginal",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "70.0",
+  "bcar_99": "59.2",
+  "bcar_995": "54.8",
+  "bcar_996": "53.7",
+  "source_file": "2 - American Amicable, Trinity.pdf"
+}

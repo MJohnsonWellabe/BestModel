@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Humana Health Group",
+  "amb_number": "070832",
+  "effective_date": "December 16, 2025",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Adequate",
+  "op_assessment": "Strong",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "Combined Life & Health, US",
+  "bcar_95": "24.4",
+  "bcar_99": "-4.6",
+  "bcar_995": "-15.8",
+  "bcar_996": "-19.7",
+  "source_file": "26 - HUmana.pdf"
+}

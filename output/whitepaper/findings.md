@@ -10,9 +10,9 @@ Rebuilding each carrier's Issuer Credit Rating from AM Best's **published** tabl
 balance-sheet **baseline band**, then the operating / business-profile / ERM **notch ranges** —
 predicts an ICR *interval* for each carrier (knowing the four labels pins the rating to a band, not
 a single value, because the baseline alone spans two notches and the OP/ERM notches are themselves
-ranges). Of **52** rated carriers:
+ranges). Of **58** rated carriers:
 
-- **45 (87%) fall inside the predicted band** — a tight
+- **51 (88%) fall inside the predicted band** — a tight
   **±1-notch** window around the point estimate, so an in-range hit means the
   rating is within one notch of the reconstruction, not caught by a wide net.
 - **7 are group-aligned** — subsidiaries rated at their *group's* ICR rather than on
@@ -20,14 +20,14 @@ ranges). Of **52** rated carriers:
   (USAA Life +4 to aaa; Combined/Chubb +3; Lumico/RGA +3; the Cigna/HCSC and American-Amicable/IA
   units +2) and *below* it where the group rating caps a strong subsidiary (the two Aetna/CVS units,
   pulled to the group's `a`). Either way the residual is group structure, not a model miss.
-- Together that explains **52 of 52 (100%)**. Most tellingly, of the
-  **30 carriers rated on their own merits, 30
+- Together that explains **58 of 58 (100%)**. Most tellingly, of the
+  **36 carriers rated on their own merits, 36
   (100%) land in the published band** — the genuine
   standalone residuals are: none.
 
 This is the thesis made measurable: a standalone carrier's rating is **the published tables applied
 to its four blocks**; the exceptions are **group support and committee judgment**, named rather than
-hidden. Reported alongside the tighter point model (45/52 within a single notch) so the band
+hidden. Reported alongside the tighter point model (51/58 within a single notch) so the band
 width can't flatter the result.
 
 > *Where Wellabe sits:* a Strongest balance sheet sets an `a`-band baseline; Adequate operating

@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Lincoln Financial Ins Grp",
+  "amb_number": "069556",
+  "effective_date": "March 13, 2026",
+  "fsr": "A",
+  "icr": "a+",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strong",
+  "op_assessment": "Strong",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "43.5",
+  "bcar_99": "23.5",
+  "bcar_995": "13.6",
+  "bcar_996": "10.6",
+  "source_file": "29 - Lincoln Financial.pdf"
+}

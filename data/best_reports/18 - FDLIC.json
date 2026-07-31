@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Funeral Directors Group",
+  "amb_number": "070016",
+  "effective_date": "October 29, 2025",
+  "fsr": "A-",
+  "icr": "a-",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "42.6",
+  "bcar_99": "24.8",
+  "bcar_995": "18.3",
+  "bcar_996": "17.0",
+  "source_file": "18 - FDLIC.pdf"
+}

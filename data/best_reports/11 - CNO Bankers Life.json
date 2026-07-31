@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "CNO Financial Group",
+  "amb_number": "069803",
+  "effective_date": "April 08, 2026",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Strong",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "L/H, US",
+  "bcar_95": "38.5",
+  "bcar_99": "15.3",
+  "bcar_995": "5.6",
+  "bcar_996": "3.8",
+  "source_file": "11 - CNO Bankers Life.pdf"
+}

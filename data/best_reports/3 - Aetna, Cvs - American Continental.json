@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Aetna Health & Life Group",
+  "amb_number": "069015",
+  "effective_date": "June 05, 2026",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Strong",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "Combined Life & Health, US",
+  "bcar_95": "56.2",
+  "bcar_99": "38.2",
+  "bcar_995": "31.3",
+  "bcar_996": "29.0",
+  "source_file": "3 - Aetna, Cvs - American Continental.pdf"
+}

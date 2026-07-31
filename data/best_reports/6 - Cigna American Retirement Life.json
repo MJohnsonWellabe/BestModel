@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "HCSC Medicare & Supp Group",
+  "amb_number": "070641",
+  "effective_date": "January 15, 2026",
+  "fsr": "A",
+  "icr": "a",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Very Strong",
+  "op_assessment": "Marginal",
+  "bp_assessment": "Neutral",
+  "erm_assessment": "Appropriate",
+  "bcar_model": "Combined Life & Health, US",
+  "bcar_95": "62.9",
+  "bcar_99": "46.6",
+  "bcar_995": "40.3",
+  "bcar_996": "38.1",
+  "source_file": "6 - Cigna American Retirement Life.pdf"
+}

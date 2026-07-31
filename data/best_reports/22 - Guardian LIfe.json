@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "Guardian Life Group",
+  "amb_number": "069685",
+  "effective_date": "September 12, 2025",
+  "fsr": "A++",
+  "icr": "aa+",
+  "outlook": "Stable",
+  "action": "Affirmed",
+  "bs_assessment": "Strongest",
+  "op_assessment": "Strong",
+  "bp_assessment": "Favorable",
+  "erm_assessment": "Very Strong",
+  "bcar_model": "L/H, US",
+  "bcar_95": "59.4",
+  "bcar_99": "47.3",
+  "bcar_995": "42.7",
+  "bcar_996": "41.2",
+  "source_file": "22 - Guardian LIfe.pdf"
+}

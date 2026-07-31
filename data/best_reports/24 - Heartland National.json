@@ -1,0 +1,19 @@
+{
+  "rating_unit_name": "",
+  "amb_number": "",
+  "effective_date": "August 06, 2025",
+  "fsr": "B++",
+  "icr": "bbb",
+  "outlook": "Negative",
+  "action": "Affirmed",
+  "bs_assessment": "Strong",
+  "op_assessment": "Adequate",
+  "bp_assessment": "Limited",
+  "erm_assessment": "Marginal",
+  "bcar_model": "L/H, US",
+  "bcar_95": "35.9",
+  "bcar_99": "12.0",
+  "bcar_995": "0.6",
+  "bcar_996": "-3.1",
+  "source_file": "24 - Heartland National.pdf"
+}
