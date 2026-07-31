@@ -503,9 +503,9 @@ def build():
     body(doc, "The downside on each block is larger than the upside, so ground is easier to lose than to gain. Of "
               "the three, only operating performance is realistically in play for us.")
     body(doc, "Business profile is Best's read of our franchise: scale, market position, product and geographic "
-              "diversification, and distribution. We are graded Neutral. Moving up requires materially greater scale "
-              "or diversification, which is a multi-year strategic change rather than a plan variance. Moving down "
-              "requires losing a core market. Neither happens inside the planning horizon.")
+              "diversification, and distribution. We are graded Neutral. Moving up requires materially greater scale, "
+              "which is a multi-year strategic change rather than a plan variance. It stays fixed unless we change "
+              "the shape of the company ourselves, and section 7 covers the one decision that would.")
     body(doc, "Risk management is graded Appropriate, and it is effectively fixed. The upside is essentially "
               "unavailable, since Very Strong is reserved for programs well beyond our size and complexity. The "
               "grade rarely moves a rating on its own. The exposure here is not the grade, it is allowing a "
@@ -556,6 +556,23 @@ def build():
               "sheet is holding the letter up. The standalone exceptions are carriers of a size we will not reach, "
               "New York Life at 259 billion dollars in assets and Lincoln at 320 billion. We are rated standalone at "
               "2.3 billion, so our own capital has to do the work.")
+    body(doc, "The peer set also answers a question worth settling, which is whether exiting a product line such as "
+              "preneed would cost us the franchise grade through lost diversification. On the evidence, "
+              "diversification is not what Best grades. Across the peer set the correlation between segment "
+              "concentration and the business-profile grade is about zero, while the correlation with scale is "
+              "strong. Mutual of Omaha is effectively monoline and graded Favorable. Assurity is as diversified as we "
+              "are and graded Limited, because, in Best's words, it lacks significant market share. Funeral Directors "
+              "writes preneed only and holds Neutral, because its business model cannot be easily replicated. Market "
+              "position is what separates the tiers.")
+    body(doc, "Our own report, though, names preneed specifically. Best writes that our Medicare Supplement "
+              "concentration is somewhat offset by the diversification added through preneed, hospital indemnity, "
+              "short-term care, and life and annuity. Exiting preneed would remove a stated mitigant and leave the "
+              "competitive characterisation of Medicare Supplement standing on its own, at a point where we are "
+              "already near the size boundary between the Neutral and Limited groups. The reassuring precedent is "
+              "Physicians Mutual, which is Medicare Supplement concentrated at a similar size and holds Neutral on "
+              "the strength of established market position and diversified distribution. A preneed exit is therefore "
+              "defensible on the franchise grade, but it is not free, and it would need to be presented to Best "
+              "alongside the market position and distribution that replace the offset.")
     body(doc, "We are an unusual profile in this set: top-decile capital paired with bottom-decile earnings. The "
               "typical A-rated peer is the reverse, a Very Strong balance sheet with Strong operating performance. "
               "We hold our A on capital and a plan Best believes, where others hold it on profits. That is the "
@@ -602,6 +619,22 @@ def build():
               "capital, because the distribution loss removes the earnings that would justify an upgrade.")
     body(doc, "We assess this as a low-probability path. It requires both blocks to fail together rather than "
               "either one alone, and we would have warning before it arrived.")
+    body(doc, "The more useful point is what happens next, because B++ is a trough rather than a resting place. The "
+              "operating slip that takes us there is a move from Adequate to Marginal, and Marginal means Best has "
+              "stopped believing the losses turn. If profitability arrives shortly after, which is what the plan and "
+              "the current combined-ratio trend both point to, that block returns to Adequate. Adequate is the "
+              "no-change state, so recovering it does not require us to earn a positive notch. It only requires us "
+              "to stop losing one. On a Very Strong balance sheet that puts us back at a- and A-, inside the "
+              "appetite, and if capital rebuilds past the trough as planned the starting point returns to a and the "
+              "letter to A.")
+    body(doc, "So the realistic shape of the downside is a dip to B++ followed by a recovery to A-, not a permanent "
+              "reset. Two things determine whether it plays out that way. The first is time at B++, because Best "
+              "upgrades on demonstrated results rather than forecasts, so the recovery lags the earnings by at least "
+              "a review cycle. The second is what happens to distribution while we sit there. Carriers that fall "
+              "below A- and lose shelf access can find the earnings recovery undercut by the business they lost, "
+              "which is the mechanism that keeps some of them down. Our exposure to that runs through preneed and "
+              "reinsurance rather than through guaranty-backed Medicare Supplement. Holding those relationships "
+              "through the trough is what converts a two-year dip into a full recovery.")
 
     H(doc, "10.  What we monitor, and how we tell the story")
     body(doc, "Four things carry the signal, and we should be deliberate about each.")
