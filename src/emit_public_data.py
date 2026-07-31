@@ -72,10 +72,28 @@ def write_bcar_template(names: list[str], have: dict) -> None:
             w.writerow([n, have.get(n, ""), ""])
 
 
+def patch_existing() -> int:
+    """Fallback when the licensed frame (tool/data.json) is absent: update bcar_score in the
+    already-published tool/public_data.json from data/bcar_scores.csv, leaving every other
+    (public) field untouched. Lets BCAR be refreshed from the reports without the S&P pull."""
+    if not OUT.exists():
+        print("No tool/data.json and no existing tool/public_data.json — run src/build.py first.")
+        return 1
+    bcar = load_bcar()
+    doc = json.loads(OUT.read_text())
+    for c in doc.get("carriers", []):
+        c["bcar_score"] = bcar.get((c.get("rating_unit_name") or "").strip())
+    doc.setdefault("meta", {})["n"] = len(doc.get("carriers", []))
+    OUT.write_text(json.dumps(doc, indent=2, default=str))
+    have = sum(1 for c in doc.get("carriers", []) if c.get("bcar_score") is not None)
+    print(f"Patched {OUT.relative_to(ROOT)} (no data.json): {len(doc.get('carriers', []))} carriers, "
+          f"{have} with BCAR.")
+    return 0
+
+
 def main() -> int:
     if not FRAME.exists():
-        print("No tool/data.json. Run: python src/build.py first.")
-        return 1
+        return patch_existing()
     frame = json.loads(FRAME.read_text())
     carriers = frame.get("carriers", [])
     bcar = load_bcar()
